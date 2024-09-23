@@ -2,122 +2,118 @@ Project structure:
 
 screendiaries/
 |— core/ —> user
-|— profiles/ —> userprofile, watchlist, queue, topten, follower
-|— activityfeed/  —> comment, reply, reaction 
-|— reviews/ —> review, rating
-|— messages/
-|— content/ —> omdb api, search
+|— network/
+|    Models:
+|    |— profiles/ —> userprofile, watchlist, queue, topten, follower
+|    |— activityfeed/  —> comment, reply, reaction 
+|    |— reviews/ —> review, rating
+|    |— messages/
+|    |— content/ —> omdb api, search
 |— screendiaries/
 |    |— settings.py
 
 MODELS: 
 
 Profile:
-id
 bio
-profile picture link
-profile cover link
+profile_picture
+profile_cover
 user (link to main user model)
 
-TopTen:
-user id
-content id
-type (movie/tvshow) 
-ranking (1-10)
+Follow:
+follower
+following
+timestamp
 
-Review:
-id
-review text
-Date added
-Rating (optional)
-content id
-user id
-contains spoiler
-
-Rating:
-content id
-rating
-user id
-date added
-
-WatchListItem:
-status (currently watching or watched)
-content id
-user id
-date added
-
-QueueItem:
-user id
-content id
-date added
-
-Follower:
-user id
-follower id
-date followed
-
-ActivityFeedItem:
-id
-user id
-type (rating, review, comment)
-content id
-date added
-
-ReviewComment:
-id
-text
-review id
-user id
-
-ReviewReply:
-id
-text
-review comment id
-user id
-
-ReviewReaction:
-review id
-emoji 
-user id
-
-RatingComment:
-id
-text
-rating id
-user id
-
-RatingReply:
-id
-text
-rating comment id
-user id
-
-RatingReaction:
-review id
-emoji 
-user id
-
-content:
-id
-type (movie, series, episode)
-episode (optional, s? e?)
+Content:
+content_type (movie, series, episode)
+season (optional)
+episode (optional)
 title
-description
-release date
+release_date
 director
 actors
 genre
-poster (image link)
 plot
+poster (url link)
 runtime
 
+WatchListItem:
+status (currently watching or watched)
+content
+user
+timestamp
+
+QueueItem:
+user
+content
+timestamp
+
+TopTen:
+user
+content (can get the type from here)
+ranking (1-10)
+
+Review:
+review text
+Rating (optional)
+content
+user
+contains_spoiler
+timestamp
+
+Rating:
+rating
+content
+user
+timestamp
+
+ActivityFeedItem:
+activity_type (rating, review, comment, reply)
+activity_id (int, not the object)
+user
+timestamp
+
+ReviewComment:
+comment_text
+review
+user
+likes
+
+ReviewReply:
+reply_text
+review_comment
+user
+likes
+
+ReviewReaction:
+reaction (love, thumbs up, laughing, crying, etc)
+review
+user
+
+RatingComment:
+comment_text
+rating
+user
+likes
+
+RatingReply:
+reply_text
+rating_comment
+user
+likes
+
+RatingReaction:
+reaction (love, thumbs up, laughing, crying, etc)
+rating
+user
+
 Message:
-id
-type (content share, activity feed share, text)
-content id
-text
-reaction (default none)
+message_type (content share, activity feed share, text)
+content_id (int, not the object, optional)
+message_text
+reaction_emoji (default blank '')
 status (unread or read)
-date added
-sender id
-recipient id
+sender
+recipient
+timestamp
