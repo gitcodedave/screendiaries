@@ -104,5 +104,5 @@ class RatingReactionSerializer(serializers.ModelSerializer):
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields = ['id', 'message_type', 'content_id', 'message_text',
+        fields = ['id', 'message_type', 'content_id', 'activity_feed_id', 'message_text',
                   'reaction_emoji', 'status_unread', 'sender', 'recipient', 'timestamp']

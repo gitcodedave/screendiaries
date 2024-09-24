@@ -138,7 +138,6 @@ class ReviewReply(models.Model):
     timestamp = models.DateTimeField(auto_now=True)
 
 
-
 class ReviewReaction(models.Model):
     REACTION_LOVE = 'LO'
     REACTION_THUMBS_UP = 'UP'
@@ -214,6 +213,7 @@ class Message(models.Model):
     ]
     message_type = models.CharField(choices=MESSAGE_TYPE_CHOICES, max_length=1)
     content_id = models.PositiveIntegerField(null=True, blank=True)
+    activity_feed_id = models.PositiveIntegerField(null=True, blank=True)
     message_text = models.TextField()
     reaction_emoji = models.CharField(max_length=10, default='')
     status_unread = models.BooleanField(default=True)
