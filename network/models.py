@@ -15,6 +15,9 @@ class UserProfile(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f'{self.user.first_name} {self.user.last_name}'
+
 
 class Follow(models.Model):
     follower = models.ForeignKey(
@@ -22,6 +25,12 @@ class Follow(models.Model):
     following = models.ForeignKey(
         UserProfile, related_name='followers', on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['follower', 'following'], name='unique_follower')
+        ]
 
 
 class Content(models.Model):
@@ -106,7 +115,8 @@ class ActivityFeedItem(models.Model):
         (ACTIVITY_TYPE_COMMENT, 'Comment'),
         (ACTIVITY_TYPE_REPLY, 'Reply'),
     ]
-    activity_type = models.CharField(choices=ACTIVITY_TYPE_CHOICES, max_length=3)
+    activity_type = models.CharField(
+        choices=ACTIVITY_TYPE_CHOICES, max_length=3)
     activity_id = models.PositiveIntegerField()
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now=True)
@@ -117,6 +127,7 @@ class ReviewComment(models.Model):
     review = models.ForeignKey(Review, on_delete=models.CASCADE)
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     likes = models.PositiveIntegerField(default=0)
+    timestamp = models.DateTimeField(auto_now=True)
 
 
 class ReviewReply(models.Model):
@@ -124,6 +135,8 @@ class ReviewReply(models.Model):
     review_comment = models.ForeignKey(ReviewComment, on_delete=models.CASCADE)
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     likes = models.PositiveIntegerField(default=0)
+    timestamp = models.DateTimeField(auto_now=True)
+
 
 
 class ReviewReaction(models.Model):
@@ -155,6 +168,7 @@ class RatingComment(models.Model):
     rating = models.ForeignKey(Rating, on_delete=models.CASCADE)
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     likes = models.PositiveIntegerField(default=0)
+    timestamp = models.DateTimeField(auto_now=True)
 
 
 class RatingReply(models.Model):
@@ -162,6 +176,7 @@ class RatingReply(models.Model):
     rating_comment = models.ForeignKey(RatingComment, on_delete=models.CASCADE)
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     likes = models.PositiveIntegerField(default=0)
+    timestamp = models.DateTimeField(auto_now=True)
 
 
 class RatingReaction(models.Model):
