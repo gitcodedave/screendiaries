@@ -11,6 +11,8 @@ mysqlclient = "*"
 pillow = "*"
 python-dotenv = "*"
 drf-nested-routers = "*"
+djoser = "*"
+djangorestframework-simplejwt = "*"
 
 [dev-packages]
 

@@ -1,11 +1,11 @@
 from rest_framework_nested import routers
 from . import views
+from django.urls import path
 
 router = routers.DefaultRouter()
 
 router.register('userprofiles', views.UserProfileViewSet)
 router.register('follows', views.FollowViewSet)
-router.register('content', views.ContentViewSet)
 router.register('watchlistitems', views.WatchListItemViewSet)
 router.register('queueitems', views.QueueItemViewSet)
 router.register('topten', views.TopTenViewSet)
@@ -46,4 +46,6 @@ rating_comments_router.register(
 
 # URLConf
 urlpatterns = router.urls + reviews_router.urls + \
-    review_comments_router.urls + ratings_router.urls + rating_comments_router.urls
+    review_comments_router.urls + ratings_router.urls + rating_comments_router.urls + \
+    [path('contentsearch', views.ContentSearch.as_view(), name='content-search')]
+
