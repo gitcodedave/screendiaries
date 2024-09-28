@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -27,20 +28,30 @@ class FollowViewSet(ModelViewSet):
     serializer_class = FollowSerializer
 
 
-class ContentSearch(APIView):
-    def get(self, request):
-        body = request.GET.dict()
-        omdb_url = 'https://www.omdbapi.com/'
-        params = {}
-        params['apikey'] = str(os.getenv('OMDB_API_KEY'))
+class ContentSearchView(APIView):
+    serializer_class = ContentSerializer
 
-        if 'imdbID' in body:
-            params['i'] = body['imdbID']
-        else:       
-            params['type'] = body['type']
-            params['s'] = body['search']
+    def get(self, request):
+        omdb_url = 'https://www.omdbapi.com/'
+        params = dict(request.query_params)
+        api_params = {}
+        if 'i' in params:
+            api_params = {
+                'i': params['i']
+            }
+        else:
+            if 's' not in params or 'type' not in params:
+                return Response(
+                    {'error': 'Please include the search term and type parameters, or valid imdbID'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            api_params = {
+                's': params['s'],
+                'type': params['type'],
+            }
+        api_params['apikey'] = str(os.getenv('OMDB_API_KEY'))
         try:
-            response = requests.get(omdb_url, params=params)
+            response = requests.get(omdb_url, params=api_params)
             response_data = response.json()
 
             if response.status_code == 200:
@@ -49,6 +60,12 @@ class ContentSearch(APIView):
                 return Response(response_data, status=response.status_code)
         except requests.exceptions.RequestException as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        serializer = ContentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class WatchListItemViewSet(ModelViewSet):
