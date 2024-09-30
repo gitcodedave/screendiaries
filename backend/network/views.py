@@ -33,22 +33,28 @@ class ContentSearchView(APIView):
 
     def get(self, request):
         omdb_url = 'https://www.omdbapi.com/'
-        params = dict(request.query_params)
+        params = dict(request.query_params.copy().items())
         api_params = {}
+        if not params:
+            return Response({'error': 'Please enter valid parameters'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         if 'i' in params:
             api_params = {
                 'i': params['i']
             }
         else:
-            if 's' not in params or 'type' not in params:
-                return Response(
-                    {'error': 'Please include the search term and type parameters, or valid imdbID'},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            api_params = {
-                's': params['s'],
-                'type': params['type'],
-            }
+            if params['type'] == 'series' and 'season' in params:
+                api_params = {
+                    't': params['s'],
+                    'season': params['season']
+                }
+                if 'episode' in params:
+                    api_params['episode'] = params['episode']
+            else:
+                api_params = {
+                    's': params['s'],
+                    'type': params['type'],
+                }
+
         api_params['apikey'] = str(os.getenv('OMDB_API_KEY'))
         try:
             response = requests.get(omdb_url, params=api_params)

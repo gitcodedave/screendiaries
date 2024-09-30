@@ -51,10 +51,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -164,6 +164,6 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     # 'https://example.com',
     # 'https://sub.example.com',
-    'https://localhost:3000',
-    'https://127.0.0.1:3000',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
 ]

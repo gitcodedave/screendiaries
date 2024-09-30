@@ -1,16 +1,18 @@
-Project structure:
+Backend structure:
 
 screendiaries/
-|— core/ —> user
-|— network/
-|    Models:
-|    |— profiles/ —> userprofile, watchlist, queue, topten, follower
-|    |— activityfeed/  —> comment, reply, reaction 
-|    |— reviews/ —> review, rating
-|    |— messages/
-|    |— content/ —> omdb api, search
-|— screendiaries/
-|    |— settings.py
+|─backend/
+|—— core/ —> user
+|—— network/
+|   	Models:
+|    	|— profiles/ —> userprofile, watchlist, queue, topten, follower
+|    	|— activityfeed/  —> comment, reply, reaction 
+|   	|— reviews/ —> review, rating
+|   	|— messages/
+|    	|— content/ —> omdb api, search
+|—- screendiaries/
+|    	|— settings.py
+|─frontend/
 
 MODELS: 
 
