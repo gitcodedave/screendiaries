@@ -1,57 +1,111 @@
 import { createContext, useState, useEffect, useCallback, useContext } from 'react';
 import { useCookies } from 'react-cookie';
 import { API } from '../api/api';
+import { jwtDecode } from 'jwt-decode';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [cookies, setCookie, removeCookie] = useCookies(['AccessToken', 'User']);
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const checkTokenValidity = useCallback(async (token) => {
-        let isValid = await API.post('/auth/jwt/verify', token)
-            .then(response => {
-                // Handle the response data
-                console.log(response.data, 'This is from checkTokenValidity, hard-coded response true');
-                return true
-            })
-            .catch(error => {
-                // Handle any errors
-                console.error(error);
-            });
-        return isValid
+        const tokenObject = {
+            "token": token
+        }
+        try {
+            let isValid = await API.post('/auth/jwt/verify', tokenObject)
+            if (isValid.data.code) {
+                return false
+            }
+            return true
+        } catch (e) {
+            console.log(e)
+            return false
+        }
     }, []);
 
-    const fetchAuthenticatedUser = useCallback(async () => {
-        const accessToken = cookies.AccessToken;
-        if (accessToken) {
-            const isValid = await checkTokenValidity(accessToken);
-            if (isValid) {
-                setUser(cookies.User);
-                return;
-            }
-        }
+    const isTokenExpired = (token) => {
+        if (!token) return true;
+        const decodedToken = jwtDecode(token);
+        const expiryTime = decodedToken.exp * 1000;
+        return Date.now() > expiryTime;
+    };
+
+    const logout = useCallback(() => {
         setUser(null);
-    }, [cookies, checkTokenValidity]);
+        removeCookie('User', { path: '/' });
+        removeCookie('AccessToken', { path: '/' });
+        removeCookie('RefreshToken', { path: '/' });
+      }, [removeCookie]);
+
+    const refreshToken = useCallback(async () => {
+        const refreshToken = cookies.RefreshToken;
+        if (refreshToken && !isTokenExpired(refreshToken)) {
+            try {
+                const response = await API.post('/auth/jwt/refresh/', { refresh: refreshToken });
+                const newAccessToken = response.data.access;
+                setCookie('AccessToken', newAccessToken, { path: '/' });
+                return newAccessToken;
+            } catch (error) {
+                console.error('Error refreshing token:', error);
+                logout();
+                return null;
+            }
+        } else {
+            logout();
+            return null;
+        }
+    }, [cookies.RefreshToken, setCookie, logout]);
+
+    const fetchAuthenticatedUser = useCallback(async () => {
+        try {
+            const accessToken = cookies.AccessToken;
+            if (accessToken && !isTokenExpired(accessToken)) {
+                const isValid = await checkTokenValidity(accessToken);
+                if (isValid) {
+                    setUser(cookies.User);
+                } else {
+                    const newAccessToken = await refreshToken();
+                    if (newAccessToken) {
+                        setUser(cookies.User);
+                    } else {
+                        setUser(null);
+                    }
+                }
+            } else {
+                setUser(null);
+            }
+        } catch (error) {
+            console.error('Error fetching authenticated user:', error);
+            setUser(null);
+        } finally {
+            setLoading(false);
+        }
+    }, [cookies, checkTokenValidity, refreshToken]);
 
     useEffect(() => {
         fetchAuthenticatedUser();
     }, [fetchAuthenticatedUser]);
 
-    const login = (userData, accessToken) => {
+    useEffect(() => {
+        const intervalId = setInterval(async () => {
+            await refreshToken();
+        }, 24 * 60 * 10 * 1000); // Refresh token every 24 hours
+        return () => clearInterval(intervalId);
+    }, [refreshToken]);
+
+    const login = (userData, accessToken, refreshToken) => {
         setUser(userData);
         setCookie('User', userData, { path: '/' });
         setCookie('AccessToken', accessToken, { path: '/' });
-    };
-
-    const logout = () => {
-        setUser(null);
-        removeCookie('User', { path: '/' });
-        removeCookie('AccessToken', { path: '/' });
+        setCookie('RefreshToken', refreshToken, { path: '/' });
+        setLoading(false);
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout }}>
+        <AuthContext.Provider value={{ user, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );

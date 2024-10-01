@@ -8,6 +8,7 @@ import { CookiesProvider } from 'react-cookie';
 const App = () => {
   return (
     <>
+    <div>
     <CookiesProvider>
       <AuthProvider>
         <BrowserRouter>
@@ -15,6 +16,7 @@ const App = () => {
         </BrowserRouter>
       </AuthProvider>
     </CookiesProvider>
+    </div>
     </>
   );
 }
