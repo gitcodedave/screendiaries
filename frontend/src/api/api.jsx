@@ -13,3 +13,13 @@ export const getToken = async (credentials) => {
       return null;
     }
   };
+
+  export const register = async (credentials) => {
+    try {
+      const response = await API.post('/auth/users/', credentials);
+      return response
+    } catch (error) {
+      
+      return error;
+    }
+  };

@@ -9,7 +9,8 @@ screendiaries/
 │   │   ├── routes/
 │   │   │   └── Routes.js
 │   │   ├── pages/
-│   │   │   ├── Auth.js
+│   │   │   ├── Login.js
+│   │   │   ├── Register.js
 │   │   │   ├── Feed.js
 │   │   │   ├── Content.js
 │   │   │   ├── Search.js
@@ -21,9 +22,10 @@ screendiaries/
 │   │   ├── components/
 │   │   │   ├── NavBar/
 │   │   │   │   ├── NavBar.js
-│   │   │   ├── Auth/
-│   │   │   │   ├── Login.js
-│   │   │   │   ├── Register.js
+│   │   │   ├── Login/
+│   │   │   │   ├── LoginBox.js
+│   │   │   ├── Register/
+│   │   │   │   ├── RegisterBox.js
 │   │   │   ├── Feed/
 │   │   │   │   ├── ActivityContainer.js
 │   │   │   │   ├── UserInfo.js
@@ -43,6 +45,7 @@ screendiaries/
 │   │   │   │   ├── Result.js
 │   │   │   │   └── Paginate.js
 │   │   │   ├── Profile/
+│   │   │   │   ├── EditProfile.js
 │   │   │   │   ├── ProfileInfoContainer.js
 │   │   │   │   ├── ProfileInfo.js
 │   │   │   │   ├── ProfileContentContainer.js

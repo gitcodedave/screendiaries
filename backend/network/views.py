@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.mixins import ListModelMixin
+from rest_framework.decorators import action
 from rest_framework import status
 
 from network import serializers
@@ -21,6 +22,13 @@ load_dotenv()
 class UserProfileViewSet(ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
+
+    @action(detail=False, methods=['GET'])
+    def me(self, request):
+        user = UserProfile.objects.get(user_id=request.user.id)
+        if request.method == 'GET':
+            serializer = UserProfileSerializer(user)
+            return Response(serializer.data)
 
 
 class FollowViewSet(ModelViewSet):

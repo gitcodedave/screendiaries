@@ -1,12 +1,12 @@
-import LoginBox from '../components/loginbox';
+import RegisterBox from "../components/registerbox";
 
-const LoginPage = () => {
+const RegisterPage = () => {
   return (
     <div>
       <img alt='screendiaries-logo' src='/screendiarieslogoflat.png' style={{ width: '175px', display: 'block', marginLeft: '30px', marginRight: 'auto', marginTop: '10px' }}></img>
-      <LoginBox />
+      <RegisterBox />
     </div>
   )
 };
 
-export default LoginPage;
+export default RegisterPage;

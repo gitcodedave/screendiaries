@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { getToken } from '../api/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -63,6 +63,8 @@ const LoginBox = () => {
                 />
                 <button className='loginbutton' id='submit-button' type="submit">Login</button>
             </form>
+            <br></br>
+            New to screendiaries? <Link to={'/register'}>Register</Link>
         </div>
     );
 };

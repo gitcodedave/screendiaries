@@ -1,11 +1,10 @@
 body {
-  background-color: #222222;
+  background-color: rgb(221, 216, 208);
   min-height: '100vh';
-  color: white;
+  color: #92765f;
 }
 
 .loginbox {
-  border-radius: 15px;
   width: fit-content;
   height: fit-content;
   position: absolute;
@@ -17,8 +16,8 @@ body {
 }
 
 .loginitems {
-  background-color: rgb(61, 61, 61);
-  border-radius: 2px;
+  background-color: #f3f0ea;
+  border-radius: 20px;
   width: fit-content;
   height: fit-content;
   padding: 20px;
@@ -29,12 +28,12 @@ body {
 }
 
 .loginitem {
-  border: 0.5px solid rgb(195, 195, 195);
+  border: 0.5px solid rgb(255, 255, 255);
   border-top: none;
   border-left: none;
   border-right: none;
-  color: white;
-  background-color: rgb(61, 61, 61);
+  color: #92765f;
+  background-color: rgb(255, 255, 255);
   width: 300px;
   height: 40px;
   outline: none;
@@ -44,14 +43,46 @@ body {
 
 .loginbutton {
   border-radius: 10px;
-  color: rgb(216, 216, 216);
-  outline-color: rgb(217, 0, 255);
+  color: #92765f;
+  outline-color: #92765f;
   outline-style: solid;
   outline-width: 1px;
   border: 0px;
-  background-color: rgb(61, 61, 61);
+  background-color: #f3f0ea;
   width: 300px;
   height: 40px;
   margin-top: 20px;
   margin-bottom: 5px;
+}
+
+.loginbutton:hover {
+  background-color: #92765f;
+  color: white;
+}
+
+.profilename {
+  font-family: 'Playfair display';
+  font-size: 20px;
+}
+
+::placeholder {
+  color: #92765f;
+}
+
+a:link {
+  color: #92765f;
+}
+
+a:visited {
+  color: #92765f;
+}
+
+/* mouse over link */
+a:hover {
+  color: white;
+}
+
+/* selected link */
+a:active {
+  color: white;
 }

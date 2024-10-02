@@ -1,14 +1,36 @@
+from django.contrib.auth import get_user_model
+from django.conf import settings
 from rest_framework import serializers
 from .models import ActivityFeedItem, Content, Follow, Message, QueueItem, Rating, RatingComment, RatingReaction, RatingReply, Review, ReviewComment, ReviewReaction, ReviewReply, TopTen, UserProfile, WatchListItem
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField(read_only=True)
+CustomUser = get_user_model()
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField()
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
     class Meta:
         model = UserProfile
-        fields = ['id', 'bio', 'profile_picture', 'profile_cover', 'user_id']
+        fields = ['id', 'bio', 'profile_picture', 'profile_cover', 'user_id', 'first_name', 'last_name']
+    
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', {})
+        user = instance.user
 
+        # Update UserProfile fields
+        instance.bio = validated_data.get('bio', instance.bio)
+        instance.profile_picture = validated_data.get('profile_picture', instance.profile_picture)
+        instance.profile_cover = validated_data.get('profile_cover', instance.profile_cover)
+        instance.save()
+
+        # Update CustomUser fields
+        user.first_name = user_data.get('first_name', user.first_name)
+        user.last_name = user_data.get('last_name', user.last_name)
+        user.email = user_data.get('email', user.email)
+        user.save()
+
+        return instance
 
 class FollowSerializer(serializers.ModelSerializer):
     class Meta:

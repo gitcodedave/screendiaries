@@ -15,9 +15,6 @@ class UserProfile(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return f'{self.user.first_name} {self.user.last_name}'
-
 
 class Follow(models.Model):
     follower = models.ForeignKey(
