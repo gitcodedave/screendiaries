@@ -23,7 +23,8 @@ const LoginBox = () => {
         if (token) {
             const accessToken = token.access
             const refreshToken = token.refresh
-            login(credentials.username, accessToken, refreshToken);
+            const profileID = token.profileID
+            login(credentials.username, accessToken, refreshToken, profileID);
             setRedirectToProfile(true);
         } else {
             let allForms = document.querySelectorAll('input');
@@ -39,12 +40,12 @@ const LoginBox = () => {
     return (
         <div id='Login-Form' className='loginbox'>
             <form onSubmit={handleSubmitClick} className='loginitems'>
-                <span style={{textAlign: 'center'}}>
+                <span style={{ textAlign: 'center' }}>
                     Sign in <br />
                 </span>
-                    <span style={{textAlign: 'center', color: 'grey', paddingTop: '1px'}}>
+                <span style={{ textAlign: 'center', color: 'grey', paddingTop: '1px' }}>
                     {errorState}
-                    </span>
+                </span>
                 <input
                     id='username-box'
                     className='loginitem'

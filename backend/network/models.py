@@ -10,8 +10,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 class UserProfile(models.Model):
     bio = models.TextField(blank=True)
-    profile_picture = models.ImageField(blank=True)
-    profile_cover = models.ImageField(blank=True)
+    profile_picture = models.ImageField(upload_to='network/images', default='network/images/default_profile_img.png', max_length=500)
+    profile_cover = models.ImageField(upload_to='network/images', blank=True, max_length=500)
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 

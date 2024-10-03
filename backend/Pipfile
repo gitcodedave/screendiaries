@@ -14,6 +14,8 @@ drf-nested-routers = "*"
 djoser = "*"
 djangorestframework-simplejwt = "*"
 django-cors-headers = "*"
+django-default-imagefield = "*"
+django-cleanup = "*"
 
 [dev-packages]
 

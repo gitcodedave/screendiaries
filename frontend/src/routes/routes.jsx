@@ -5,6 +5,7 @@ import NotFoundPage from '../pages/notfound404';
 import RegisterPage from '../pages/registerpage';
 import ProfilePage from '../pages/profilepage';
 import EditProfilePage from '../pages/editprofilepage';
+import SearchPage from '../pages/searchpage';
 
 export function AppRoutes() {
     return (
@@ -17,6 +18,7 @@ export function AppRoutes() {
                 <Route element={<ProtectedRoute />}>
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/editprofile" element={<EditProfilePage />} />
+                    <Route path="/search" element={<SearchPage />} />
                 </Route>
 
                 <Route path="/" element={<Navigate to="/profile" />} />

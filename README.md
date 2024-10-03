@@ -1,8 +1,12 @@
 When making search queries for content, the ContentSearchView API utilizes the following query parameters:
 
-i = A valid IMDB ID for a piece of content
-s = Search term
+
 type = The type of content (movie, series, episode)
+s = Search term
+~ Optional
+i = A valid IMDB ID for a piece of content
+season = The season of the series
+episode = The episode of the season
 
 Project structure:
 

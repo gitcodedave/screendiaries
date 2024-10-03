@@ -7,7 +7,7 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.mixins import ListModelMixin
 from rest_framework.decorators import action
 from rest_framework import status
-
+from rest_framework.parsers import MultiPartParser, FormParser
 from network import serializers
 from network.models import ActivityFeedItem, Content, Follow, Message, QueueItem, Rating, RatingComment, RatingReaction, RatingReply, Review, ReviewComment, ReviewReaction, ReviewReply, TopTen, UserProfile, WatchListItem
 from network.serializers import ActivityFeedItemSerializer, ContentSerializer, FollowSerializer, MessageSerializer, QueueItemSerializer, RatingCommentSerializer, RatingReactionSerializer, RatingReplySerializer, RatingSerializer, ReviewCommentSerializer, ReviewReactionSerializer, ReviewReplySerializer, ReviewSerializer, TopTenSerializer, UserProfileSerializer, WatchListItemSerializer
@@ -22,6 +22,8 @@ load_dotenv()
 class UserProfileViewSet(ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
+    parser_classes = (MultiPartParser, FormParser)
+    
 
     @action(detail=False, methods=['GET'])
     def me(self, request):

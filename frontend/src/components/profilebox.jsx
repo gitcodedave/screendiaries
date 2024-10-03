@@ -10,7 +10,7 @@ const ProfileBox = () => {
     const [cookies] = useCookies(['AccessToken']);
     const navigate = useNavigate()
 
-    const handleEditProfileClick = (event) =>{
+    const handleEditProfileClick = (event) => {
         event.preventDefault()
         navigate('/editprofile')
     }
@@ -31,6 +31,7 @@ const ProfileBox = () => {
                     }
                 })
                 let { bio, profile_picture } = userProfileResponse.data
+                profile_picture = 'http://localhost:8000' + profile_picture
                 setProfilePictureState(profile_picture)
                 setBioState(bio)
             } catch (error) {
@@ -49,7 +50,7 @@ const ProfileBox = () => {
             </div>
             <img src={profilePictureState} alt='profile pic' width='100px'></img>
         </div>
-        
+
     );
 };
 

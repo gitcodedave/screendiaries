@@ -45,7 +45,8 @@ const RegisterBox = () => {
         const token = await getToken(loginCredentials);
         const accessToken = token.access
         const refreshToken = token.refresh
-        login(loginCredentials.username, accessToken, refreshToken);
+        const profileID = token.profileID
+        login(credentials.username, accessToken, refreshToken, profileID);
         setRedirectToProfile(true);
     };
 
