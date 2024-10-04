@@ -49,8 +49,8 @@ class FollowSerializer(serializers.ModelSerializer):
 class ContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Content
-        fields = ['id', 'content_type', 'season', 'episode', 'title',
-                  'release_date', 'director', 'actors', 'genre', 'plot', 'poster', 'runtime']
+        fields = ['imdbid', 'content_type', 'season', 'episode', 'title',
+                  'year', 'director', 'actors', 'genre', 'plot', 'poster', 'runtime']
 
 
 class WatchListItemSerializer(serializers.ModelSerializer):

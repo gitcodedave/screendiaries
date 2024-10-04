@@ -25,7 +25,6 @@ const RegisterBox = () => {
 
         const successfulRegister = await register(credentials);
         if (successfulRegister.response) {
-
             const errorType = successfulRegister.response.data
             if (errorType.email) {
                 setErrorState('Please enter valid email')

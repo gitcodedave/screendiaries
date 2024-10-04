@@ -31,25 +31,28 @@ class Follow(models.Model):
 
 
 class Content(models.Model):
-    CONTENT_TYPE_MOVIE = 'M'
-    CONTENT_TYPE_SERIES = 'S'
-    CONTENT_TYPE_EPISODE = 'E'
+    CONTENT_TYPE_MOVIE = 'MO'
+    CONTENT_TYPE_SERIES = 'SR'
+    CONTENT_TYPE_SEASON = 'SN'
+    CONTENT_TYPE_EPISODE = 'EP'
     CONTENT_TYPE_CHOICES = [
         (CONTENT_TYPE_MOVIE, 'Movie'),
         (CONTENT_TYPE_SERIES, 'Series'),
+        (CONTENT_TYPE_SEASON, 'Season'),
         (CONTENT_TYPE_EPISODE, 'Episode')
     ]
-    content_type = models.CharField(choices=CONTENT_TYPE_CHOICES, max_length=1)
+    content_type = models.CharField(choices=CONTENT_TYPE_CHOICES, max_length=2)
     season = models.PositiveSmallIntegerField(null=True, blank=True)
     episode = models.PositiveSmallIntegerField(null=True, blank=True)
     title = models.CharField(max_length=200)
-    release_date = models.DateField()
+    year = models.PositiveIntegerField()
     director = models.CharField(max_length=70)
     actors = models.TextField()
     genre = models.CharField(max_length=40)
     plot = models.TextField()
     poster = models.URLField()
     runtime = models.CharField(max_length=50)
+    imdbid = models.CharField(max_length=50, primary_key=True)
 
 
 class WatchListItem(models.Model):

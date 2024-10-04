@@ -4,8 +4,8 @@ import { API } from "../api/api";
 import { useCookies } from "react-cookie";
 
 const EditProfilePage = () => {
-    const [bioState, setBioState] = useState('')
     const [profilePictureFile, setProfilePictureFile] = useState(null);
+    const [bioState, setBioState] = useState('')
     const [firstNameState, setFirstNameState] = useState('')
     const [lastNameState, setLastNameState] = useState('')
     const [errorMessage, setErrorMessageState] = useState('')
@@ -48,12 +48,19 @@ const EditProfilePage = () => {
 
     const handleFormDataSubmit = async (event) => {
         event.preventDefault()
-        const credentials = {
-            "bio": bioState,
-            "first_name": firstNameState,
-            "last_name": lastNameState,
+        const credentials = {}
+
+        if (bioState !== ''){
+            credentials.bio = bioState
         }
-        if (credentials.bio === '' && credentials.first_name === '' && credentials.last_name === '') {
+        if(firstNameState !== ''){
+            credentials.first_name = firstNameState
+        }
+        if (lastNameState !== ''){
+            credentials.last_name = lastNameState
+        }
+
+        if (bioState === '' && firstNameState === '' && lastNameState === '') {
             setErrorMessageState('Please update fields')
             return;
         }

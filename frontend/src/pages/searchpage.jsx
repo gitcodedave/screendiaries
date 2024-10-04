@@ -4,7 +4,6 @@ const SearchPage = () => {
 
     return (
         <div>
-            This is the search page
             <SearchBox/>
         </div>
     );

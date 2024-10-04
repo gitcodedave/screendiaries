@@ -38,6 +38,7 @@ export const AuthProvider = ({ children }) => {
         removeCookie('User', { path: '/' });
         removeCookie('AccessToken', { path: '/' });
         removeCookie('RefreshToken', { path: '/' });
+        removeCookie('profileID', { path: '/' });
       }, [removeCookie]);
 
     const refreshToken = useCallback(async () => {

@@ -38,6 +38,11 @@ class FollowViewSet(ModelViewSet):
     serializer_class = FollowSerializer
 
 
+class ContentViewSet(ModelViewSet):
+    queryset = Content.objects.all()
+    serializer_class = ContentSerializer
+
+
 class ContentSearchView(APIView):
     serializer_class = ContentSerializer
 

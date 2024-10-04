@@ -4,6 +4,17 @@ body {
   color: #92765f;
 }
 
+table.searchresults {
+  border-collapse:collapse;
+}
+
+tr.searchresults:hover {
+  background-color: #ccc3bc;
+}
+
+
+
+
 .loginbox {
   width: fit-content;
   height: fit-content;
@@ -66,7 +77,7 @@ body {
 }
 
 ::placeholder {
-  color: #92765f;
+  color: #dbd1c8;
 }
 
 a:link {
@@ -99,9 +110,11 @@ a:active {
   cursor: pointer;
 }
 
+
 .input {
   display: none;
 }
+
 
 .switch {
   position: relative;
@@ -121,6 +134,7 @@ a:active {
   -webkit-transition: 0.4s;
   transition: 0.4s;
 }
+
 
 .slider:before {
   position: absolute;
