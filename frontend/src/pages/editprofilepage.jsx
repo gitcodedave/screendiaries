@@ -1,17 +1,41 @@
-import { useState, useRef } from "react"
-import { Link } from "react-router-dom";
+import { useState, useRef, useEffect } from "react"
 import { API } from "../api/api";
 import { useCookies } from "react-cookie";
+import Navbar from "../components/navbar";
+import { Link } from "react-router-dom";
 
 const EditProfilePage = () => {
     const [profilePictureFile, setProfilePictureFile] = useState(null);
     const [bioState, setBioState] = useState('')
+    const [profileBio, setProfileBio] = useState('')
+    const [profileFirstName, setProfileFirstName] = useState('')
+    const [profileLastName, setProfileLastName] = useState('')
     const [firstNameState, setFirstNameState] = useState('')
     const [lastNameState, setLastNameState] = useState('')
     const [errorMessage, setErrorMessageState] = useState('')
     const [previewProfilePic, setPreviewProfilePic] = useState('')
     const profilePictureInputRef = useRef();
     const [cookies] = useCookies(['profileID', 'AccessToken']);
+
+    const getProfileData = async () => {
+        try {
+            const response = await API.get(`network/userprofiles/${cookies.profileID}/`, {
+                headers: {
+                    Authorization: `JWT ${cookies.AccessToken}`
+                }
+            });
+            const data = response.data;
+            setProfileBio(data.bio)
+            setProfileFirstName(data.first_name)
+            setProfileLastName(data.last_name)
+        } catch (error) {
+            setErrorMessageState('Error getting profile data')
+        }
+    }
+
+    useEffect(() => {
+        getProfileData()
+    },);
 
     const handleProfilePictureFileChange = (event) => {
         const file = event.target.files[0];
@@ -29,6 +53,9 @@ const EditProfilePage = () => {
         const formData = new FormData();
         if (profilePictureFile != null) {
             formData.append('profile_picture', profilePictureFile);
+        } else {
+            setErrorMessageState('(Please choose an image file)')
+            return;
         }
         try {
             const response = await API.patch(`network/userprofiles/${cookies.profileID}/`, formData, {
@@ -50,13 +77,13 @@ const EditProfilePage = () => {
         event.preventDefault()
         const credentials = {}
 
-        if (bioState !== ''){
+        if (bioState !== '') {
             credentials.bio = bioState
         }
-        if(firstNameState !== ''){
+        if (firstNameState !== '') {
             credentials.first_name = firstNameState
         }
-        if (lastNameState !== ''){
+        if (lastNameState !== '') {
             credentials.last_name = lastNameState
         }
 
@@ -84,14 +111,14 @@ const EditProfilePage = () => {
 
     return (
         <div>
-            <Link to={'/profile'}>Back to Profile</Link>
+            <Navbar />
+            <Link to={'/profile'}>Back</Link>
             <div className='loginbox'>
-                <div>
+                <div style={{ display: 'flex', flex: 'column', justifyContent: 'center' }}>
                     {previewProfilePic && <img src={previewProfilePic} alt="Selected Preview" style={{ marginTop: '10px', maxWidth: '50%' }} />}
                     <form onSubmit={handleProfilePicSubmit} ref={profilePictureInputRef}>
                         <input
                             id='profile-pic-box'
-                            className='loginitem'
                             type="file"
                             accept="image/*"
                             onChange={handleProfilePictureFileChange}
@@ -105,36 +132,36 @@ const EditProfilePage = () => {
                         <table>
                             <tbody>
                                 <tr>
-                                    <td>Bio</td>
+                                    <td>{profileBio}</td>
                                     <td>{<input
                                         id='bio-box'
                                         className='loginitem'
                                         type="text"
                                         value={bioState}
                                         onChange={(e) => setBioState(e.target.value)}
-                                        placeholder=""
+                                        placeholder="(profile bio)"
                                     />}</td>
                                 </tr>
                                 <tr>
-                                    <td>First Name</td>
+                                    <td>{profileFirstName}</td>
                                     <td>{<input
                                         id='first-name-box'
                                         className='loginitem'
                                         type="text"
                                         value={firstNameState}
                                         onChange={(e) => setFirstNameState(e.target.value)}
-                                        placeholder=""
+                                        placeholder="(first name)"
                                     />}</td>
                                 </tr>
                                 <tr>
-                                    <td>Last Name</td>
+                                    <td>{profileLastName}</td>
                                     <td>{<input
                                         id='last-name-box'
                                         className='loginitem'
                                         type="text"
                                         value={lastNameState}
                                         onChange={(e) => setLastNameState(e.target.value)}
-                                        placeholder=""
+                                        placeholder="(last name)"
                                     />}</td>
                                 </tr>
                             </tbody>

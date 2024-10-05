@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getToken, register } from "../api/api";
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 
 const RegisterBox = () => {
@@ -16,6 +16,7 @@ const RegisterBox = () => {
 
     const handleSubmitClick = async (event) => {
         event.preventDefault();
+        setErrorState('')
 
         const credentials = {
             email: emailState,
@@ -29,11 +30,11 @@ const RegisterBox = () => {
             if (errorType.email) {
                 setErrorState('Please enter valid email')
                 return;
-            } else if (errorType.password) {
-                setErrorState('Password not strong enough')
-                return;
             } else if (errorType.username) {
                 setErrorState('Please enter valid username')
+                return;
+            } else if (errorType.password) {
+                setErrorState('Password not strong enough')
                 return;
             }
         }
@@ -91,6 +92,8 @@ const RegisterBox = () => {
                 />
                 <button className='loginbutton' id='submit-button' type="submit">Submit</button>
             </form>
+            <br></br>
+            Back to <Link to={'/login'}>Sign In</Link>
         </div>
     );
 }

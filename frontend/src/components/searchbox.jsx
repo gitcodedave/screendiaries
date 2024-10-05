@@ -14,6 +14,7 @@ const SearchBox = () => {
     const [contentTypeMovies, setContentTypeMovies] = useState(false)
     const [contentTypeSeries, setContentTypeSeries] = useState(false)
     const [contentTypeSeason, setContentTypeSeason] = useState(false)
+    const [episodesList, setEpisodesList] = useState([])
     const [contentTypeEpisode, setContentTypeEpisode] = useState(false)
     const [contentType, setContentType] = useState(false)
 
@@ -82,6 +83,9 @@ const SearchBox = () => {
                 console.log('error')
                 return;
             }
+            if('Episodes' in data){
+                setEpisodesList(data.Episodes)
+            }
             setErrorState('')
             if ('Title' in data) {
                 setSearchResults([data])
@@ -112,7 +116,7 @@ const SearchBox = () => {
     }
 
     return (
-        <div>
+        <div className='searchbox'>
             <input className="input" id="toggle" onClick={handleTypeSelectClick} type="checkbox" />
             <label className="label" htmlFor="toggle">
                 <div className="left">
@@ -175,6 +179,7 @@ const SearchBox = () => {
                 contentTypeSeason={contentTypeSeason}
                 contentTypeEpisode={contentTypeEpisode}
                 contentType={contentType}
+                episodesList={episodesList}
             />
         </div>
     )

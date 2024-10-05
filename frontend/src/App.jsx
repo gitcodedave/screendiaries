@@ -8,7 +8,7 @@ import { CookiesProvider } from 'react-cookie';
 const App = () => {
   return (
     <>
-    <div>
+    <div className='main'>
     <CookiesProvider>
       <AuthProvider>
         <BrowserRouter>

@@ -1,3 +1,4 @@
+import Navbar from '../components/navbar';
 import ProfileBox from '../components/profilebox'
 import { useAuth } from '../context/AuthContext';
 
@@ -6,7 +7,8 @@ const ProfilePage = () => {
 
     return (
         <div>
-            Navbar goes here <button onClick={logout}>logout</button>
+            <Navbar/>
+             <button onClick={logout}>logout</button>
             <ProfileBox />
         </div>
     );
