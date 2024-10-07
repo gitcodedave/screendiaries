@@ -1,25 +1,46 @@
-import { useState } from "react";
 import { useCookies } from "react-cookie";
 import { API } from "../api/api";
+import { useNavigate } from "react-router-dom";
 
 const SearchResults = ({ searchResultsList, episodesList, contentTypeMovies, contentTypeSeries, contentTypeSeason, contentTypeEpisode, contentType }) => {
     const [cookies] = useCookies('AccessToken')
-    const [errorState, setErrorState] = useState('')
+    const navigate = useNavigate()
 
     const handleResultClick = async (e, i) => {
-        try {
-            let imdbIDParam;
-            if (episodesList.length) {
-                imdbIDParam = {
-                    'i': episodesList[i].imdbID
-                }
-                contentType = 'EP'
-            } else {
-                imdbIDParam = {
-                    'i': searchResultsList[i].imdbID
-                }
+        let searchRequestSuccess = false;
+        let postRequestSuccess = false
+        let imdbIDParam;
+        let searchResponse;
+        let contentExists;
+
+        if (episodesList.length) {
+            imdbIDParam = {
+                'i': episodesList[i].imdbID
             }
-            const searchResponse = await API.get('/network/contentsearch/',
+            contentType = 'Episode'
+        } else {
+            imdbIDParam = {
+                'i': searchResultsList[i].imdbID
+            }
+        }
+        try {
+            contentExists = await API.get(`/network/content/${imdbIDParam.i}`,
+                {
+                    headers: {
+                        Authorization: `JWT ${cookies.AccessToken}`
+                    }
+                },
+            )
+            if (contentExists.status === 200) {
+                navigate(`/content/${imdbIDParam.i}`, { state: contentExists.data })
+                return;
+            }
+        } catch (error) {
+            // Movie is not in the database yet
+            console.log('Uploading content to database')
+        }
+        try {
+            searchResponse = await API.get('/network/contentsearch/',
                 {
                     params: imdbIDParam,
                     headers: {
@@ -27,53 +48,58 @@ const SearchResults = ({ searchResultsList, episodesList, contentTypeMovies, con
                     }
                 },
             )
-            console.log(searchResponse.data)
-            const { imdbID, Title, Year, Director, Actors, Genre, Plot, Poster, Runtime } = searchResponse.data
-            const contentData = {
-                "imdbid": imdbID,
-                "content_type": contentType,
-                "season": null,
-                "episode": null,
-                "title": Title,
-                "year": Year,
-                "director": Director,
-                "actors": Actors,
-                "genre": Genre,
-                "plot": Plot,
-                "poster": Poster,
-                "runtime": Runtime
+            if (searchResponse.status === 200) {
+                searchRequestSuccess = true;
             }
-            if (episodesList.length || contentType === 'EP') {
-                const { Season, Episode } = searchResponse.data
-                contentData.season = Season;
-                contentData.episode = Episode;
-            }
-            const uploadContent = await API.post('/network/content/', contentData,
-                {
-                    headers: {
-                        Authorization: `JWT ${cookies.AccessToken}`
-                    }
-                }
-            )
-            console.log(uploadContent)
-            
         } catch (error) {
             if (error.response) {
                 console.error('Error response data:', error.response.data);
                 if (error.response.status === 500) {
                     console.error('Internal Server Error: ', error.response.data);
-                    // Optionally, you can set an error state here to display a message to the user
-                    setErrorState('Internal Server Error. Please try again later.');
                 }
-            } else if (error.request) {
-                // The request was made but no response was received
-                console.error('Error request:', error.request);
-            } else {
-                // Something happened in setting up the request that triggered an Error
-                console.error('Error message:', error.message);
             }
-            console.error('Error config:', error.config);
-            return;
+        }
+        let data = searchResponse.data
+        let imdbID = data.imdbID
+        let uploadContent;
+        if (searchRequestSuccess) {
+            try {
+                const { Title, Year, Director, Actors, Genre, Plot, Poster, Runtime, Season = null, Episode = null } = searchResponse.data
+                const contentData = {
+                    "imdbid": imdbID,
+                    "content_type": contentType,
+                    "season": Season,
+                    "episode": Episode,
+                    "title": Title,
+                    "year": Year,
+                    "director": Director,
+                    "actors": Actors,
+                    "genre": Genre,
+                    "plot": Plot,
+                    "poster": Poster,
+                    "runtime": Runtime
+                }
+                uploadContent = await API.post('/network/content/', contentData,
+                    {
+                        headers: {
+                            Authorization: `JWT ${cookies.AccessToken}`
+                        }
+                    }
+                )
+                if (uploadContent.status === 201) {
+                    postRequestSuccess = true
+                }
+            } catch (error) {
+                if (error.response) {
+                    console.error('Error response data:', error.response.data);
+                    if (error.response.status === 500) {
+                        console.error('Internal Server Error: ', error.response.data);
+                    }
+                }
+            }
+            if (postRequestSuccess) {
+                navigate(`/content/${imdbID}`, { state: uploadContent.data })
+            }
         }
     }
 

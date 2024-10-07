@@ -31,21 +31,19 @@ class Follow(models.Model):
 
 
 class Content(models.Model):
-    CONTENT_TYPE_MOVIE = 'MO'
-    CONTENT_TYPE_SERIES = 'SR'
-    CONTENT_TYPE_SEASON = 'SN'
-    CONTENT_TYPE_EPISODE = 'EP'
+    CONTENT_TYPE_MOVIE = 'Movie'
+    CONTENT_TYPE_SERIES = 'Series'
+    CONTENT_TYPE_EPISODE = 'Episode'
     CONTENT_TYPE_CHOICES = [
         (CONTENT_TYPE_MOVIE, 'Movie'),
         (CONTENT_TYPE_SERIES, 'Series'),
-        (CONTENT_TYPE_SEASON, 'Season'),
         (CONTENT_TYPE_EPISODE, 'Episode')
     ]
-    content_type = models.CharField(choices=CONTENT_TYPE_CHOICES, max_length=2)
+    content_type = models.CharField(choices=CONTENT_TYPE_CHOICES, max_length=7)
     season = models.PositiveSmallIntegerField(null=True, blank=True)
     episode = models.PositiveSmallIntegerField(null=True, blank=True)
     title = models.CharField(max_length=200)
-    year = models.PositiveIntegerField()
+    year = models.CharField(max_length=20)
     director = models.CharField(max_length=70)
     actors = models.TextField()
     genre = models.CharField(max_length=40)
@@ -56,13 +54,13 @@ class Content(models.Model):
 
 
 class WatchListItem(models.Model):
-    WATCH_STATUS_CURRENTLY_WATCHING = 'C'
-    WATCH_STATUS_WATCHED = 'W'
+    WATCH_STATUS_CURRENTLY_WATCHING = 'Currently Watching'
+    WATCH_STATUS_WATCHED = 'Watched'
     WATCH_STATUS_CHOICES = [
         (WATCH_STATUS_CURRENTLY_WATCHING, 'Currently Watching'),
         (WATCH_STATUS_WATCHED, 'Watched')
     ]
-    status = models.CharField(choices=WATCH_STATUS_CHOICES, max_length=1)
+    status = models.CharField(choices=WATCH_STATUS_CHOICES, max_length=18)
     content = models.ForeignKey(Content, on_delete=models.CASCADE)
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now=True)
@@ -105,10 +103,10 @@ class Rating(models.Model):
 
 
 class ActivityFeedItem(models.Model):
-    ACTIVITY_TYPE_REVIEW = 'REV'
-    ACTIVITY_TYPE_RATING = 'RAT'
-    ACTIVITY_TYPE_COMMENT = 'COM'
-    ACTIVITY_TYPE_REPLY = 'REP'
+    ACTIVITY_TYPE_REVIEW = 'Review'
+    ACTIVITY_TYPE_RATING = 'Rating'
+    ACTIVITY_TYPE_COMMENT = 'Comment'
+    ACTIVITY_TYPE_REPLY = 'Reply'
     ACTIVITY_TYPE_CHOICES = [
         (ACTIVITY_TYPE_REVIEW, 'Review'),
         (ACTIVITY_TYPE_RATING, 'Rating'),
@@ -116,7 +114,7 @@ class ActivityFeedItem(models.Model):
         (ACTIVITY_TYPE_REPLY, 'Reply'),
     ]
     activity_type = models.CharField(
-        choices=ACTIVITY_TYPE_CHOICES, max_length=3)
+        choices=ACTIVITY_TYPE_CHOICES, max_length=7)
     activity_id = models.PositiveIntegerField()
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now=True)
@@ -139,14 +137,14 @@ class ReviewReply(models.Model):
 
 
 class ReviewReaction(models.Model):
-    REACTION_LOVE = 'LO'
-    REACTION_THUMBS_UP = 'UP'
-    REACTION_THUMBS_DOWN = 'DO'
-    REACTION_LAUGH = 'LA'
-    REACTION_CRY = 'CR'
-    REACTION_SURPRISED = 'SU'
-    REACTION_SICK = 'SI'
-    REACTION_ANGRY = 'AN'
+    REACTION_LOVE = 'Love'
+    REACTION_THUMBS_UP = 'Thumbs Up'
+    REACTION_THUMBS_DOWN = 'Thumbs Down'
+    REACTION_LAUGH = 'Laughing'
+    REACTION_CRY = 'Crying'
+    REACTION_SURPRISED = 'Surprised'
+    REACTION_SICK = 'Sick'
+    REACTION_ANGRY = 'Angry'
     REACTION_CHOICES = [
         (REACTION_LOVE, 'Love'),
         (REACTION_THUMBS_UP, 'Thumbs Up'),
@@ -157,7 +155,7 @@ class ReviewReaction(models.Model):
         (REACTION_SICK, 'Sick'),
         (REACTION_ANGRY, 'Angry'),
     ]
-    reaction = models.CharField(choices=REACTION_CHOICES, max_length=2)
+    reaction = models.CharField(choices=REACTION_CHOICES, max_length=11)
     review = models.ForeignKey(Review, on_delete=models.CASCADE)
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
 
@@ -179,14 +177,14 @@ class RatingReply(models.Model):
 
 
 class RatingReaction(models.Model):
-    REACTION_LOVE = 'LO'
-    REACTION_THUMBS_UP = 'UP'
-    REACTION_THUMBS_DOWN = 'DO'
-    REACTION_LAUGH = 'LA'
-    REACTION_CRY = 'CR'
-    REACTION_SURPRISED = 'SU'
-    REACTION_SICK = 'SI'
-    REACTION_ANGRY = 'AN'
+    REACTION_LOVE = 'Love'
+    REACTION_THUMBS_UP = 'Thumbs Up'
+    REACTION_THUMBS_DOWN = 'Thumbs Down'
+    REACTION_LAUGH = 'Laughing'
+    REACTION_CRY = 'Crying'
+    REACTION_SURPRISED = 'Surprised'
+    REACTION_SICK = 'Sick'
+    REACTION_ANGRY = 'Angry'
     REACTION_CHOICES = [
         (REACTION_LOVE, 'Love'),
         (REACTION_THUMBS_UP, 'Thumbs Up'),
@@ -197,21 +195,21 @@ class RatingReaction(models.Model):
         (REACTION_SICK, 'Sick'),
         (REACTION_ANGRY, 'Angry'),
     ]
-    reaction = models.CharField(choices=REACTION_CHOICES, max_length=2)
+    reaction = models.CharField(choices=REACTION_CHOICES, max_length=11)
     rating = models.ForeignKey(Rating, on_delete=models.CASCADE)
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
 
 
 class Message(models.Model):
-    MESSAGE_TYPE_CONTENT = 'C'
-    MESSAGE_TYPE_ACTIVITY = 'A'
-    MESSAGE_TYPE_TEXT = 'T'
+    MESSAGE_TYPE_CONTENT = 'Content Share'
+    MESSAGE_TYPE_ACTIVITY = 'Activity Feed Share'
+    MESSAGE_TYPE_TEXT = 'Text'
     MESSAGE_TYPE_CHOICES = [
         (MESSAGE_TYPE_CONTENT, 'Content Share'),
         (MESSAGE_TYPE_ACTIVITY, 'Activity Feed Share'),
         (MESSAGE_TYPE_TEXT, 'Text'),
     ]
-    message_type = models.CharField(choices=MESSAGE_TYPE_CHOICES, max_length=1)
+    message_type = models.CharField(choices=MESSAGE_TYPE_CHOICES, max_length=19)
     content_id = models.PositiveIntegerField(null=True, blank=True)
     activity_feed_id = models.PositiveIntegerField(null=True, blank=True)
     message_text = models.TextField()

@@ -108,6 +108,23 @@ class ReviewViewSet(ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
+class UserReviewsViewSet(APIView):
+    serializer_class = ReviewSerializer
+
+    def get(self, request, user_id):
+        reviews = Review.objects.filter(user_profile_id=user_id)
+        serializer = ReviewSerializer(reviews, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class ContentReviewsViewSet(APIView):
+    serializer_class = ReviewSerializer
+
+    def get(self, request, content_id):
+        reviews = Review.objects.select_related('user_profile').filter(content_id=content_id)
+        serializer = ReviewSerializer(reviews, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 
 class RatingViewSet(ModelViewSet):
     queryset = Rating.objects.all()

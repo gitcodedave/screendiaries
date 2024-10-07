@@ -48,4 +48,7 @@ rating_comments_router.register(
 # URLConf
 urlpatterns = router.urls + reviews_router.urls + \
     review_comments_router.urls + ratings_router.urls + rating_comments_router.urls + \
-    [path('contentsearch/', views.ContentSearchView.as_view(), name='content-search')]
+    [path('contentsearch/', views.ContentSearchView.as_view(), name='content-search')] + \
+    [path('userreviews/<int:user_id>/', views.UserReviewsViewSet.as_view(), name='user-reviews')] + \
+    [path('contentreviews/<str:content_id>/', views.ContentReviewsViewSet.as_view(), name='content-reviews')]
+

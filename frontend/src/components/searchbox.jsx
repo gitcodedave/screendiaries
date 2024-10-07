@@ -19,7 +19,6 @@ const SearchBox = () => {
     const [contentType, setContentType] = useState(false)
 
     const [cookies] = useCookies('AccessToken')
-
     const handleTypeSelectClick = (e) => {
         if (checkboxState === 'movie') {
             setCheckboxState('series')
@@ -53,19 +52,19 @@ const SearchBox = () => {
                         return;
                     }
                     setContentTypeEpisode(true)
-                    setContentType('EP')
+                    setContentType('Episode')
                     search.episode = episodeState
                 } else {
                     setContentTypeSeason(true)
-                    setContentType('SN')
+                    setContentType('Season')
                 }
             } else {
                 setContentTypeSeries(true)
-                setContentType('SR')
+                setContentType('Series')
             }
         } else {
             setContentTypeMovies(true)
-            setContentType('MO')
+            setContentType('Movie')
         }
 
         try {
@@ -89,10 +88,8 @@ const SearchBox = () => {
             setErrorState('')
             if ('Title' in data) {
                 setSearchResults([data])
-                console.log(data, 'with Title')
             } else {
                 setSearchResults(data.Search)
-                console.log(data, 'not Title')
             }
             return;
 

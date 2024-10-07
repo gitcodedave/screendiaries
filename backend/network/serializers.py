@@ -72,10 +72,15 @@ class TopTenSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    user_profile = UserProfileSerializer(read_only=True)
+    user_profile_id = serializers.PrimaryKeyRelatedField(
+        queryset=UserProfile.objects.all(), write_only=True, source='user_profile'
+    )
+
     class Meta:
         model = Review
         fields = ['id', 'review_text', 'rating', 'content',
-                  'user_profile', 'contains_spoiler', 'timestamp']
+                  'user_profile', 'user_profile_id', 'contains_spoiler', 'timestamp']
 
 
 class RatingSerializer(serializers.ModelSerializer):
