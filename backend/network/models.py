@@ -9,7 +9,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 # Create your models here.
 
 class UserProfile(models.Model):
-    bio = models.TextField(blank=True)
+    bio = models.TextField(blank=True, default='I just joined screendiaries!')
     profile_picture = models.ImageField(upload_to='network/images', default='network/images/default_profile_img.png', max_length=500)
     profile_cover = models.ImageField(upload_to='network/images', blank=True, max_length=500)
     user = models.OneToOneField(
@@ -92,6 +92,12 @@ class Review(models.Model):
     contains_spoiler = models.BooleanField()
     timestamp = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['content', 'user_profile'], name='unique_review')
+        ]
+
 
 class Rating(models.Model):
     rating = models.PositiveSmallIntegerField(
@@ -100,7 +106,14 @@ class Rating(models.Model):
     content = models.ForeignKey(Content, on_delete=models.CASCADE)
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['content', 'user_profile'], name='unique_rating')
+        ]
 
+    
 
 class ActivityFeedItem(models.Model):
     ACTIVITY_TYPE_REVIEW = 'Review'

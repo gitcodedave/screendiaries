@@ -49,6 +49,20 @@ rating_comments_router.register(
 urlpatterns = router.urls + reviews_router.urls + \
     review_comments_router.urls + ratings_router.urls + rating_comments_router.urls + \
     [path('contentsearch/', views.ContentSearchView.as_view(), name='content-search')] + \
-    [path('userreviews/<int:user_id>/', views.UserReviewsViewSet.as_view(), name='user-reviews')] + \
-    [path('contentreviews/<str:content_id>/', views.ContentReviewsViewSet.as_view(), name='content-reviews')]
+    [path('userreviews/<int:user_id>/', views.UserReviewsView.as_view(), name='user-reviews')] + \
+    [path('userreviewcount/<int:user_id>/', views.UserReviewCountView.as_view(), name='user-review-count')] + \
+    [path('userratingcount/<int:user_id>/', views.UserRatingCountView.as_view(), name='user-rating-count')] + \
+    [path('mywatchlist/<int:user_id>/', views.MyWatchListView.as_view(), name='my-watchlist')] + \
+    [path('mywatchlistdelete/<str:content_id>/<int:user_id>/', views.MyWatchListView.as_view(), name='watchlist-item-delete')] + \
+    [path('myqueue/<int:user_id>/', views.MyQueueView.as_view(), name='my-queue')] + \
+    [path('myqueuedelete/<str:content_id>/<int:user_id>/', views.MyQueueView.as_view(), name='queue-item-delete')] + \
+    [path('userfollowcount/<int:user_id>/', views.UserFollowCountView.as_view(), name='user-follow-count')] + \
+    [path('userratings/<int:user_id>/', views.UserRatingsView.as_view(), name='user-ratings')] + \
+    [path('myrating/<str:content_id>/<int:user_id>/', views.MyRatingView.as_view(), name='my-rating')] + \
+    [path('myreview/<str:content_id>/<int:user_id>/', views.MyReviewView.as_view(), name='my-review')] + \
+    [path('checkinqueue/<str:content_id>/<int:user_id>/', views.ContentInQueueView.as_view(), name='check-in-queue')] + \
+    [path('checkinwatchlist/<str:content_id>/<int:user_id>/', views.ContentInWatchListView.as_view(), name='check-in-watchlist')] + \
+    [path('allotherreviews/<str:content_id>/<int:user_id>/', views.AllOtherReviewsView.as_view(), name='all-other-reviews')] + \
+    [path('contentreviews/<str:content_id>/', views.ContentReviewsView.as_view(), name='content-reviews')] + \
+    [path('contentratings/<str:content_id>/', views.ContentRatingsView.as_view(), name='content-ratings')]
 

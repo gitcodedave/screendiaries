@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
 import { useCookies } from "react-cookie"
 import { API } from "../api/api"
@@ -11,9 +11,9 @@ const LeaveReview = () => {
     const [reviewState, setReviewState] = useState('')
     const [containsSpoiler, setContainsSpoiler] = useState(false)
     const [errorState, setErrorState] = useState('')
-    const params = useParams()
     const [cookies] = useCookies(['profileID', 'AccessToken']);
-
+    const params = useParams()
+    const imdbID = params.imdbID
 
     const handleContainsSpoiler = (e) => {
         setContainsSpoiler(e.target.checked);
@@ -39,13 +39,14 @@ const LeaveReview = () => {
     };
 
     const handleClick = async (e) => {
+        let uploadReview;
+        let uploadRating;
         e.preventDefault()
         if (ratingState === '') {
             setErrorState('(Please choose a rating)')
             return;
         }
         if (reviewState !== '') {
-            const imdbID = params.imdbID
             const reviewData = {
                 "review_text": reviewState,
                 "rating": ratingState,
@@ -54,19 +55,85 @@ const LeaveReview = () => {
                 "contains_spoiler": containsSpoiler
             }
             try {
-                const uploadReview = await API.post('/network/reviews/', reviewData,
+                uploadReview = await API.post('/network/reviews/', reviewData,
                     {
                         headers: {
                             Authorization: `JWT ${cookies.AccessToken}`
                         }
                     }
                 )
+                const ratingData = {
+                    "rating": ratingState,
+                    "content": imdbID,
+                    "user_profile_id": cookies.profileID,
+                }
+                try {
+                    uploadRating = await API.post('/network/ratings/', ratingData,
+                        {
+                            headers: {
+                                Authorization: `JWT ${cookies.AccessToken}`
+                            }
+                        }
+                    )
+                    console.log(uploadRating)
+                } catch (error) {
+                    console.log(error, 'Rating exists already, updating')
+                    if(error.status === 400){
+                        uploadRating = await API.patch(`/network/myrating/${imdbID}/${cookies.profileID}/`, ratingData,
+                            {
+                                headers: {
+                                    Authorization: `JWT ${cookies.AccessToken}`
+                                }
+                            }
+                        )
+                    }
+                    if (uploadRating.status === 200) {
+                        window.location.reload();
+                    }
+                }
             } catch (error) {
-                console.log(error, 'error occured uploading review')
+                setErrorState("(You've already reviewed this)")
+                return;
             }
-            window.location.reload();
+            if (uploadReview.status === 201) {
+                window.location.reload();
+            }
             return;
+        } else {
+            const ratingData = {
+                "rating": ratingState,
+                "content": imdbID,
+                "user_profile_id": cookies.profileID,
+            }
+            try {
+                uploadRating = await API.post('/network/ratings/', ratingData,
+                    {
+                        headers: {
+                            Authorization: `JWT ${cookies.AccessToken}`
+                        }
+                    }
+                )
+                console.log(uploadRating)
+            } catch (error) {
+                console.log(error, 'Rating exists already, updating')
+                if(error.status === 400){
+                    uploadRating = await API.patch(`/network/myrating/${imdbID}/${cookies.profileID}/`, ratingData,
+                        {
+                            headers: {
+                                Authorization: `JWT ${cookies.AccessToken}`
+                            }
+                        }
+                    )
+                }
+                if (uploadRating.status === 200) {
+                    window.location.reload();
+                }
+            } 
+            if (uploadRating.status === 201) {
+                window.location.reload();
+            }
         }
+
     }
 
     return (
@@ -102,9 +169,9 @@ const LeaveReview = () => {
                 </div>
             </div>
             <div className='ratingerror'>
-                {`${errorState}`}
+              <span style={{color: '#fd5c63'}}> {`${errorState}`}</span>
             </div>
-            <Reviews/>
+            <Reviews />
         </div>
     )
 }

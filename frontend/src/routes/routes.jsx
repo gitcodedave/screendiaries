@@ -7,6 +7,7 @@ import ProfilePage from '../pages/profilepage';
 import EditProfilePage from '../pages/editprofilepage';
 import SearchPage from '../pages/searchpage';
 import ContentPage from '../pages/contentpage';
+import WatchListPage from '../pages/watchlistpage';
 
 export function AppRoutes() {
     return (
@@ -21,6 +22,7 @@ export function AppRoutes() {
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/editprofile" element={<EditProfilePage />} />
                     <Route path="/search" element={<SearchPage />} />
+                    <Route path="/mywatchlist" element={<WatchListPage />} />
                 </Route>
 
                 <Route path="/" element={<Navigate to="/profile" />} />

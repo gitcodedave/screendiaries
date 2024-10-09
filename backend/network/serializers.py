@@ -13,11 +13,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(
         source='user.first_name', required=False)
     last_name = serializers.CharField(source='user.last_name', required=False)
+    username = serializers.CharField(source='user.username', required=False)
 
     class Meta:
         model = UserProfile
         fields = ['id', 'bio', 'profile_picture',
-                  'user_id', 'first_name', 'last_name']
+                  'user_id', 'first_name', 'last_name', 'username']
 
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', {})
@@ -51,6 +52,14 @@ class ContentSerializer(serializers.ModelSerializer):
         model = Content
         fields = ['imdbid', 'content_type', 'season', 'episode', 'title',
                   'year', 'director', 'actors', 'genre', 'plot', 'poster', 'runtime']
+        
+class ContentWithStatusSerializer(serializers.ModelSerializer):
+    status = serializers.CharField()
+
+    class Meta:
+        model = Content
+        fields = ['imdbid', 'content_type', 'season', 'episode', 'title',
+                  'year', 'director', 'actors', 'genre', 'plot', 'poster', 'runtime', 'status']
 
 
 class WatchListItemSerializer(serializers.ModelSerializer):
@@ -84,9 +93,14 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class RatingSerializer(serializers.ModelSerializer):
+    user_profile = UserProfileSerializer(read_only=True)
+    user_profile_id = serializers.PrimaryKeyRelatedField(
+        queryset=UserProfile.objects.all(), write_only=True, source='user_profile'
+    )
+    
     class Meta:
         model = Rating
-        fields = ['id', 'rating', 'content', 'user_profile', 'timestamp']
+        fields = ['id', 'rating', 'content', 'user_profile_id', 'user_profile', 'timestamp']
 
 
 class ActivityFeedItemSerializer(serializers.ModelSerializer):

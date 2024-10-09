@@ -28,13 +28,13 @@ const RegisterBox = () => {
         if (successfulRegister.response) {
             const errorType = successfulRegister.response.data
             if (errorType.email) {
-                setErrorState('Please enter valid email')
+                setErrorState(`(${errorType.email[0]})`)
                 return;
             } else if (errorType.username) {
-                setErrorState('Please enter valid username')
+                setErrorState(`(${errorType.username[0]})`)
                 return;
             } else if (errorType.password) {
-                setErrorState('Password not strong enough')
+                setErrorState(`(${errorType.password[0]})`)
                 return;
             }
         }

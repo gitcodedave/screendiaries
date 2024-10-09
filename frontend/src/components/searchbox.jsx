@@ -84,12 +84,17 @@ const SearchBox = () => {
             }
             if('Episodes' in data){
                 setEpisodesList(data.Episodes)
+                setErrorState('')
+                return;
             }
             setErrorState('')
             if ('Title' in data) {
-                setSearchResults([data])
+                const prunedData = data.filter(val => val.Poster !== 'N/A');
+                setSearchResults([prunedData])
             } else {
-                setSearchResults(data.Search)
+                const searchData = data.Search
+                const prunedData = searchData.filter(val => val.Poster !== 'N/A');
+                setSearchResults(prunedData)
             }
             return;
 
@@ -127,7 +132,7 @@ const SearchBox = () => {
                     Series
                 </div>
             </label>
-            <form onSubmit={handleSubmitClick} className='loginitems'>
+            <form onSubmit={handleSubmitClick} className='searchitems'>
                 <span style={{ textAlign: 'center' }}>
                     Search for a {checkboxState}<br />
                     {errorState}
@@ -136,7 +141,7 @@ const SearchBox = () => {
                     Search
                     <input
                         id='search-box'
-                        className='loginitem'
+                        className='searchitem'
                         type="text"
                         value={searchState}
                         onChange={(e) => setSearchState(e.target.value)}
@@ -148,7 +153,7 @@ const SearchBox = () => {
                         Season #:
                         <input
                             id='season-box'
-                            className='loginitem'
+                            className='searchitemnumber'
                             type="number"
                             value={seasonState}
                             onChange={(e) => setSeasonState(e.target.value)}
@@ -160,7 +165,7 @@ const SearchBox = () => {
                         Episode #:
                         <input
                             id='episode-box'
-                            className='loginitem'
+                            className='searchitemnumber'
                             type="number"
                             value={episodeState}
                             onChange={(e) => setEpisodeState(e.target.value)}

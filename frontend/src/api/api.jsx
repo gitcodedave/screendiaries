@@ -26,7 +26,6 @@ export const register = async (credentials) => {
     const response = await API.post('/auth/users/', credentials);
     return response
   } catch (error) {
-
     return error;
   }
 };

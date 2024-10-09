@@ -3,6 +3,8 @@ import { API } from "../api/api";
 import { useCookies } from "react-cookie";
 import Navbar from "../components/navbar";
 import { Link } from "react-router-dom";
+import Table from 'react-bootstrap/Table';
+// import 'bootstrap/dist/css/bootstrap.min.css';
 
 const EditProfilePage = () => {
     const [profilePictureFile, setProfilePictureFile] = useState(null);
@@ -16,6 +18,8 @@ const EditProfilePage = () => {
     const [previewProfilePic, setPreviewProfilePic] = useState('')
     const profilePictureInputRef = useRef();
     const [cookies] = useCookies(['profileID', 'AccessToken']);
+
+
 
     const getProfileData = async () => {
         try {
@@ -66,7 +70,7 @@ const EditProfilePage = () => {
             profilePictureInputRef.current.reset()
             setProfilePictureFile(null);
             setPreviewProfilePic('');
-            setErrorMessageState('Profile Image Updated!')
+            setErrorMessageState('(Profile Image Updated!)')
             return response;
         } catch (error) {
             setErrorMessageState('Error uploading image')
@@ -100,22 +104,16 @@ const EditProfilePage = () => {
         if (successfulUpdate.response) {
             setErrorMessageState('Oops! Something went wrong.')
         }
-        setErrorMessageState('Profile updated')
-        setBioState('')
-        setFirstNameState('')
-        setLastNameState('')
-        let allForms = document.querySelectorAll('input');
-        allForms.forEach(eachInput => eachInput.value = '');
-        return;
+        window.location.reload();
     }
 
     return (
         <div>
             <Navbar />
-            <Link to={'/profile'}>Back</Link>
-            <div className='loginbox'>
+                <Link style={{marginLeft: '10px'}} to={'/profile'}>Back</Link>
+            <div className='editprofilepage'>
                 <div style={{ display: 'flex', flex: 'column', justifyContent: 'center' }}>
-                    {previewProfilePic && <img src={previewProfilePic} alt="Selected Preview" style={{ marginTop: '10px', maxWidth: '50%' }} />}
+                    {previewProfilePic && <img src={previewProfilePic} alt="Selected Preview" style={{ marginTop: '10px', maxWidth: '20%' }} />}
                     <form onSubmit={handleProfilePicSubmit} ref={profilePictureInputRef}>
                         <input
                             id='profile-pic-box'
@@ -126,15 +124,38 @@ const EditProfilePage = () => {
                         <button className='loginbutton' id='upload-button' type="submit">Upload</button>
                     </form>
                 </div>
-                <div>
-                    <form onSubmit={handleFormDataSubmit} className='loginitems'>
+                <div className='editprofiletable'>
+                    <form onSubmit={handleFormDataSubmit} className='editprofileitems'>
                         {errorMessage}
-                        <table>
+                        <Table>
                             <tbody>
                                 <tr>
-                                    <td>{profileBio}</td>
+                                    <td>First Name</td>
+                                    <td>Last Name</td>
+                                    <td>Bio</td>
+                                </tr>
+                                <tr>
+                                    <td>{<input
+                                        id='first-name-box'
+                                        className='loginitem'
+                                        style={{width: '100px'}}
+                                        type="text"
+                                        value={firstNameState}
+                                        onChange={(e) => setFirstNameState(e.target.value)}
+                                        placeholder="(first name)"
+                                    />}</td>
+                                    <td>{<input
+                                        id='last-name-box'
+                                        className='loginitem'
+                                        style={{width: '100px'}}
+                                        type="text"
+                                        value={lastNameState}
+                                        onChange={(e) => setLastNameState(e.target.value)}
+                                        placeholder="(last name)"
+                                    />}</td>
                                     <td>{<input
                                         id='bio-box'
+                                        style={{width: '170px'}}
                                         className='loginitem'
                                         type="text"
                                         value={bioState}
@@ -144,28 +165,11 @@ const EditProfilePage = () => {
                                 </tr>
                                 <tr>
                                     <td>{profileFirstName}</td>
-                                    <td>{<input
-                                        id='first-name-box'
-                                        className='loginitem'
-                                        type="text"
-                                        value={firstNameState}
-                                        onChange={(e) => setFirstNameState(e.target.value)}
-                                        placeholder="(first name)"
-                                    />}</td>
-                                </tr>
-                                <tr>
                                     <td>{profileLastName}</td>
-                                    <td>{<input
-                                        id='last-name-box'
-                                        className='loginitem'
-                                        type="text"
-                                        value={lastNameState}
-                                        onChange={(e) => setLastNameState(e.target.value)}
-                                        placeholder="(last name)"
-                                    />}</td>
+                                    <td>{profileBio}</td>
                                 </tr>
                             </tbody>
-                        </table>
+                        </Table>
                         <button className='loginbutton' id='submit-button' type="submit">Submit</button>
                     </form>
                 </div>

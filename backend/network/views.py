@@ -1,6 +1,7 @@
 import json
 from django.shortcuts import render
 from rest_framework.decorators import api_view
+from django.db.models import Case, When, Value, CharField
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
@@ -10,7 +11,7 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 from network import serializers
 from network.models import ActivityFeedItem, Content, Follow, Message, QueueItem, Rating, RatingComment, RatingReaction, RatingReply, Review, ReviewComment, ReviewReaction, ReviewReply, TopTen, UserProfile, WatchListItem
-from network.serializers import ActivityFeedItemSerializer, ContentSerializer, FollowSerializer, MessageSerializer, QueueItemSerializer, RatingCommentSerializer, RatingReactionSerializer, RatingReplySerializer, RatingSerializer, ReviewCommentSerializer, ReviewReactionSerializer, ReviewReplySerializer, ReviewSerializer, TopTenSerializer, UserProfileSerializer, WatchListItemSerializer
+from network.serializers import ActivityFeedItemSerializer, ContentSerializer, ContentWithStatusSerializer, FollowSerializer, MessageSerializer, QueueItemSerializer, RatingCommentSerializer, RatingReactionSerializer, RatingReplySerializer, RatingSerializer, ReviewCommentSerializer, ReviewReactionSerializer, ReviewReplySerializer, ReviewSerializer, TopTenSerializer, UserProfileSerializer, WatchListItemSerializer
 import requests
 import os
 
@@ -23,7 +24,6 @@ class UserProfileViewSet(ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
     parser_classes = (MultiPartParser, FormParser)
-    
 
     @action(detail=False, methods=['GET'])
     def me(self, request):
@@ -36,6 +36,15 @@ class UserProfileViewSet(ModelViewSet):
 class FollowViewSet(ModelViewSet):
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
+
+
+class UserFollowCountView(APIView):
+    serializer_class = FollowSerializer
+
+    def get(self, request, user_id):
+        followerCount = Follow.objects.select_related(
+            'user_profile').filter(follower_id=user_id).count()
+        return Response(followerCount, status=status.HTTP_200_OK)
 
 
 class ContentViewSet(ModelViewSet):
@@ -94,6 +103,94 @@ class WatchListItemViewSet(ModelViewSet):
     serializer_class = WatchListItemSerializer
 
 
+class MyWatchListView(APIView):
+    serializer_class = WatchListItemSerializer
+
+    def get(self, request, user_id):
+        # Fetch and order WatchListItem objects
+        watchlist_items = WatchListItem.objects.filter(
+            user_profile_id=user_id).order_by('timestamp')
+
+        # Create a dictionary of content_id to status
+        status_dict = {item.content_id: item.status for item in watchlist_items}
+
+        # Create a list of content_ids in the same order as watchlist_items
+        content_ids_ordered = [item.content_id for item in watchlist_items]
+
+        # Annotate Content objects with status
+        case_status = Case(
+            *[When(pk=content_id, then=Value(status)) for content_id, status in status_dict.items()],
+            output_field=CharField(),
+        )
+
+        # Retrieve Content objects and annotate with status
+        content_objects = Content.objects.filter(pk__in=content_ids_ordered).annotate(status=case_status)
+
+        # Create a dictionary of content_id to Content object for ordering
+        content_dict = {content.pk: content for content in content_objects}
+
+        # Maintain the order of Content objects based on content_ids_ordered
+        ordered_content = [content_dict[content_id] for content_id in content_ids_ordered]
+
+        # Serialize the ordered Content objects
+        serializer = ContentWithStatusSerializer(ordered_content, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, content_id, user_id):
+        instance = WatchListItem.objects.filter(
+            content_id=content_id, user_profile_id=user_id)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class ContentInWatchListView(APIView):
+    serializer_class = WatchListItemSerializer
+
+    def get(self, request, content_id, user_id):
+        try:
+            watchlist_item = WatchListItem.objects.select_related('user_profile').get(
+                content_id=content_id, user_profile_id=user_id)
+        except WatchListItem.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = WatchListItemSerializer(watchlist_item)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ContentInQueueView(APIView):
+    serializer_class = QueueItemSerializer
+
+    def get(self, request, content_id, user_id):
+        try:
+            queue_item = QueueItem.objects.select_related('user_profile').get(
+                content_id=content_id, user_profile_id=user_id)
+        except QueueItem.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = QueueItemSerializer(queue_item)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class MyQueueView(APIView):
+    serializer_class = QueueItemSerializer
+
+    def get(self, request, user_id):
+        queue_items = QueueItem.objects.filter(
+            user_profile_id=user_id).order_by('timestamp')
+        content_ids = [item.content_id for item in queue_items]
+        content_objects = Content.objects.filter(pk__in=content_ids)
+        content_dict = {content.imdbid: content for content in content_objects}
+        ordered_content = [content_dict[content_id]
+                           for content_id in content_ids]
+        serializer = ContentSerializer(ordered_content, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, content_id, user_id):
+        instance = QueueItem.objects.filter(
+            content_id=content_id, user_profile_id=user_id)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class QueueItemViewSet(ModelViewSet):
     queryset = QueueItem.objects.all()
     serializer_class = QueueItemSerializer
@@ -108,7 +205,8 @@ class ReviewViewSet(ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
-class UserReviewsViewSet(APIView):
+
+class UserReviewsView(APIView):
     serializer_class = ReviewSerializer
 
     def get(self, request, user_id):
@@ -116,19 +214,105 @@ class UserReviewsViewSet(APIView):
         serializer = ReviewSerializer(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-class ContentReviewsViewSet(APIView):
+
+class AllOtherReviewsView(APIView):
+    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
-    def get(self, request, content_id):
-        reviews = Review.objects.select_related('user_profile').filter(content_id=content_id)
+    def get(self, request, content_id, user_id):
+        reviews = Review.objects.select_related('user_profile').filter(
+            content_id=content_id).exclude(user_profile_id=user_id)
         serializer = ReviewSerializer(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+class MyReviewView(APIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+    def get(self, request, content_id, user_id):
+        review = Review.objects.select_related('user_profile').get(
+            content_id=content_id, user_profile_id=user_id)
+        serializer = ReviewSerializer(review)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ContentReviewsView(APIView):
+    serializer_class = ReviewSerializer
+
+    def get(self, request, content_id):
+        reviews = Review.objects.select_related(
+            'user_profile').filter(content_id=content_id)
+        serializer = ReviewSerializer(reviews, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserReviewCountView(APIView):
+    serializer_class = ReviewSerializer
+
+    def get(self, request, user_id):
+        reviewCount = Review.objects.select_related(
+            'user_profile').filter(user_profile_id=user_id).count()
+        return Response(reviewCount, status=status.HTTP_200_OK)
+
+
+class UserRatingCountView(APIView):
+    serializer_class = RatingSerializer
+
+    def get(self, request, user_id):
+        ratingCount = Rating.objects.select_related(
+            'user_profile').filter(user_profile_id=user_id).count()
+        return Response(ratingCount, status=status.HTTP_200_OK)
 
 
 class RatingViewSet(ModelViewSet):
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
+
+
+class UserRatingsView(APIView):
+    serializer_class = RatingSerializer
+
+    def get(self, request, user_id):
+        ratings = Rating.objects.filter(user_profile_id=user_id)
+        serializer = RatingSerializer(ratings, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ContentRatingsView(APIView):
+    queryset = Rating.objects.all()
+    serializer_class = RatingSerializer
+
+    def get(self, request, content_id):
+        ratings = Rating.objects.select_related(
+            'user_profile').filter(content_id=content_id)
+        serializer = RatingSerializer(ratings, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class MyRatingView(APIView):
+    queryset = Rating.objects.all()
+    serializer_class = RatingSerializer
+
+    def get(self, request, content_id, user_id):
+        rating = Rating.objects.select_related('user_profile').get(
+            content_id=content_id, user_profile_id=user_id)
+        serializer = RatingSerializer(rating)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request, content_id, user_id):
+        try:
+            rating = Rating.objects.select_related('user_profile').get(
+                content_id=content_id, user_profile_id=user_id)
+        except Rating.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = RatingSerializer(
+            rating, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ActivityFeedItemViewSet(ModelViewSet):
