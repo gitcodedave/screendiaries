@@ -131,6 +131,10 @@ button.profilebutton {
   margin-top: 10px;
 }
 
+.watchlisttable {
+  border-spacing: 10px;
+}
+
 
 table.searchresults {
   border-collapse: collapse;
@@ -140,7 +144,12 @@ tr.searchresults:hover {
   background-color: #ccc3bc;
 }
 
-
+.clickresultloading {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
 .loginbox {
   width: fit-content;
   height: fit-content;
@@ -313,7 +322,6 @@ img.contentposter {
   margin-right: auto;
   margin-top: 10px;
 }
-
 
 .emptyqueue {
   display: flex;

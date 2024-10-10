@@ -46,12 +46,19 @@ class FollowSerializer(serializers.ModelSerializer):
         model = Follow
         fields = ['id', 'follower', 'following', 'timestamp']
 
+class FollowWithUserProfileSerializer(serializers.ModelSerializer):
+    following_profile = UserProfileSerializer(source='following')
+
+    class Meta:
+        model = Follow
+        fields = ['id', 'follower', 'following', 'timestamp', 'following_profile']
+
 
 class ContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Content
         fields = ['imdbid', 'content_type', 'season', 'episode', 'title',
-                  'year', 'director', 'actors', 'genre', 'plot', 'poster', 'runtime']
+                  'year', 'director', 'actors', 'genre', 'plot', 'poster', 'runtime', 'seriesid']
         
 class ContentWithStatusSerializer(serializers.ModelSerializer):
     status = serializers.CharField()

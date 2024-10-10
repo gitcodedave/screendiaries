@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { API } from '../api/api';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import { useAuth } from '../context/AuthContext';
 import { NavLink } from 'react-router-dom';
 
-const ProfileBox = () => {
+const OtherProfileBox = () => {
     const [profileNameState, setProfileNameState] = useState('')
     const [reviewCount, setReviewCount] = useState(0)
     const [ratingCount, setRatingCount] = useState(0)
@@ -13,13 +13,16 @@ const ProfileBox = () => {
     const [bioState, setBioState] = useState('')
     const [firstNameState, setFirstNameState] = useState('')
     const [lastNameState, setLastNameState] = useState('')
+    const [followingState, setFollowingState] = useState(false)
     const [profilePictureState, setProfilePictureState] = useState('')
     const [myQueue, setMyQueue] = useState([])
     const [hasQueue, setHasQueue] = useState(false)
-    const [showFindContent, setShowFindContent] = useState(true)
+    const [showNoQueue, setShowNoQueue] = useState(true)
     const [checkboxState, setCheckboxState] = useState('movies')
     const [cookies] = useCookies(['profileID', 'AccessToken']);
     const navigate = useNavigate()
+    const params = useParams()
+    const otherUserID = params.profileID
     const { logout } = useAuth()
 
     const handleTypeSelectClick = (e) => {
@@ -47,13 +50,39 @@ const ProfileBox = () => {
         }
     }
 
-    const handleEditProfileClick = (e) => {
+    const handleFollowClick = async (e) => {
         e.preventDefault()
-        navigate('/editprofile')
+        if (followingState) {
+            try {
+                const unFollowResponse = await API.delete(`network/unfollow/${cookies.profileID}/${otherUserID}/`)
+                if (unFollowResponse.status === 204) {
+                    setFollowingState(false)
+                }
+            } catch (error) {
+                console.log(error, 'Not able to unfollow')
+            }
+        } else {
+            try {
+                const followData = {
+                    'follower': cookies.profileID,
+                    'following': otherUserID
+                }
+                const followResponse = await API.post(`/network/follows/`, followData, {
+                    headers: {
+                        Authorization: `JWT ${cookies.AccessToken}`
+                    }
+                });
+                if (followResponse.status === 201) {
+                    setFollowingState(true)
+                }
+            } catch (error) {
+                console.log(error, 'Not able to follow')
+            }
+        }
     }
     const fetchQueue = async () => {
         try {
-            const myQueueResponse = await API.get(`network/myqueue/${cookies.profileID}/`)
+            const myQueueResponse = await API.get(`network/myqueue/${otherUserID}/`)
             const data = myQueueResponse.data
             let prunedData;
             let upperCased;
@@ -62,15 +91,15 @@ const ProfileBox = () => {
             } else {
                 upperCased = 'Series'
             }
-            if (upperCased === 'Series'){
+            if (upperCased === 'Series') {
                 prunedData = data.filter(val => val.content_type === upperCased || val.content_type === 'Episode');
             } else {
                 prunedData = data.filter(val => val.content_type === upperCased);
             }
             if (!prunedData.length) {
-                setShowFindContent(true)
+                setShowNoQueue(true)
             } else {
-                setShowFindContent(false)
+                setShowNoQueue(false)
             }
             setMyQueue(prunedData)
             setHasQueue(true)
@@ -81,43 +110,52 @@ const ProfileBox = () => {
     }
 
     useEffect(() => {
+
+        const checkIfFollow = async () => {
+            try {
+                const checkFollowResponse = await API.get(`network/checkfollow/${cookies.profileID}/${otherUserID}/`)
+                if (checkFollowResponse.status === 200) {
+                    setFollowingState(true)
+                }
+            } catch (error) {
+                console.log(error, 'Did not find follow')
+            }
+        }
+
         const fetchStats = async () => {
             try {
-                const reviewCountResponse = await API.get(`network/userreviewcount/${cookies.profileID}/`)
+                const reviewCountResponse = await API.get(`network/userreviewcount/${otherUserID}/`)
                 setReviewCount(reviewCountResponse.data)
             } catch (error) {
                 console.log(error, 'error fetching review count')
             }
             try {
-                const ratingCountResponse = await API.get(`network/userratingcount/${cookies.profileID}/`)
+                const ratingCountResponse = await API.get(`network/userratingcount/${otherUserID}/`)
                 setRatingCount(ratingCountResponse.data)
             } catch (error) {
                 console.log(error, 'error fetching rating count')
             }
             try {
-                const followCountResponse = await API.get(`network/userfollowcount/${cookies.profileID}/`)
+                const followCountResponse = await API.get(`network/userfollowcount/${otherUserID}/`)
                 setFollowCount(followCountResponse.data)
             } catch (error) {
                 console.log(error, 'error fetching follow count')
             }
         }
 
-        const fetchUser = async () => {
+        const fetchOtherUser = async () => {
             try {
-                const userDataResponse = await API.get('/auth/users/me/', {
+                const userDataResponse = await API.get(`/network/userprofiles/${otherUserID}/`, {
                     headers: {
                         Authorization: `JWT ${cookies.AccessToken}`
                     }
                 })
                 const userData = userDataResponse.data
                 setProfileNameState(userData.username)
-                const userProfileResponse = await API.get(`/network/userprofiles/me`, {
-                    headers: {
-                        Authorization: `JWT ${cookies.AccessToken}`
-                    }
-                })
-                let { bio, profile_picture, first_name = false, last_name = false } = userProfileResponse.data
-                profile_picture = 'http://localhost:8000' + profile_picture
+                let { bio, profile_picture, first_name = false, last_name = false } = userDataResponse.data
+                if (!profile_picture.includes('http://localhost:8000')) {
+                    profile_picture = 'http://localhost:8000' + profile_picture
+                }
                 setProfilePictureState(profile_picture)
                 setBioState(bio)
                 setFirstNameState(first_name)
@@ -127,9 +165,10 @@ const ProfileBox = () => {
                 return null;
             }
         }
-        fetchUser()
+        fetchOtherUser()
         fetchStats()
         fetchQueue()
+        checkIfFollow()
     }, [cookies.AccessToken, cookies.profileID, checkboxState])
 
     return (
@@ -161,14 +200,14 @@ const ProfileBox = () => {
                                     ratings
                                 </div>
                             </div>
-                            <NavLink style={{textDecoration: 'none'}} to={`/friendslist/${cookies.profileID}`}><div className='stat'>
+                            <div className='stat'>
                                 <div className='statnumber'>
-                                {followCount}
+                                    {followCount}
                                 </div>
                                 <div className='statname'>
                                     following
                                 </div>
-                            </div></NavLink>
+                            </div>
                         </div>
                         <div className='profilebio'>
                             {bioState}
@@ -176,8 +215,13 @@ const ProfileBox = () => {
                     </div>
                 </div>
                 <div className='profilebuttons'>
-                    <button className='profilebutton' onClick={handleEditProfileClick}>Edit Profile</button>
-                   <NavLink to={`/mywatchlist/${cookies.profileID}/`}><button className='profilebutton'>My WatchList</button></NavLink>
+                    {followingState && (
+                        <button className='profilebutton' onClick={handleFollowClick}>Following <i className="fa-solid fa-check"></i></button>
+                    )}
+                    {!followingState && (
+                        <button className='profilebutton' onClick={handleFollowClick}>Follow</button>
+                    )}
+                    <NavLink to={`/mywatchlist/${otherUserID}/`}><button className='profilebutton'>WatchList</button></NavLink>
                     <button className='profilebutton'>Friends WatchList</button>
                 </div>
                 <div className='profiletoggle'>
@@ -196,13 +240,13 @@ const ProfileBox = () => {
                 </div>
                 <div className='separator'></div>
                 <div className='queuelabel'>
-                    My Queue
+                    {profileNameState}'s Queue
                 </div>
                 <div className='queuecontainer'>
-                    {showFindContent &&
+                    {showNoQueue &&
                         <div className='emptyqueue'>
                             <div>
-                                There's nothing in your {checkboxState} Queue yet. <br></br>
+                                There's nothing in {profileNameState}'s {checkboxState} Queue yet. <br></br>
                             </div>
                             <div>
                                 <NavLink to='/search'><img height={'15px'} style={{ marginTop: '5px' }} alt='search-icon' src='/search-icon.png'></img></NavLink>
@@ -238,4 +282,4 @@ const ProfileBox = () => {
 };
 
 
-export default ProfileBox;
+export default OtherProfileBox;

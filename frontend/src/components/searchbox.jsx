@@ -7,8 +7,8 @@ const SearchBox = () => {
     const [checkboxState, setCheckboxState] = useState('movie')
     const [searchState, setSearchState] = useState('')
     const [seasonState, setSeasonState] = useState('')
-    const [showSeasonAndEpisode, setShowSeasonAndEpisodeState] = useState(false)
     const [episodeState, setEpisodeState] = useState('')
+    const [showSeasonAndEpisode, setShowSeasonAndEpisodeState] = useState(false)
     const [errorState, setErrorState] = useState('')
     const [searchResults, setSearchResults] = useState([])
     const [contentTypeMovies, setContentTypeMovies] = useState(false)
@@ -17,9 +17,12 @@ const SearchBox = () => {
     const [episodesList, setEpisodesList] = useState([])
     const [contentTypeEpisode, setContentTypeEpisode] = useState(false)
     const [contentType, setContentType] = useState(false)
+    const [showLoading, setShowLoading] = useState(false)
+
 
     const [cookies] = useCookies('AccessToken')
     const handleTypeSelectClick = (e) => {
+        setShowLoading(false)
         if (checkboxState === 'movie') {
             setCheckboxState('series')
             setShowSeasonAndEpisodeState(true)
@@ -30,6 +33,7 @@ const SearchBox = () => {
     }
 
     const handleSubmitClick = async (e) => {
+        setShowLoading(true)
         e.preventDefault()
         setContentTypeMovies(false)
         setContentTypeSeries(false)
@@ -40,7 +44,6 @@ const SearchBox = () => {
             return;
         }
         const search = {
-            's': searchState,
             'type': checkboxState
         }
         if (checkboxState === 'series') {
@@ -53,20 +56,23 @@ const SearchBox = () => {
                     }
                     setContentTypeEpisode(true)
                     setContentType('Episode')
+                    search.t = searchState
                     search.episode = episodeState
                 } else {
                     setContentTypeSeason(true)
                     setContentType('Season')
+                    search.s = searchState
                 }
             } else {
                 setContentTypeSeries(true)
                 setContentType('Series')
+                search.s = searchState
             }
         } else {
             setContentTypeMovies(true)
             setContentType('Movie')
+            search.s = searchState
         }
-
         try {
             const searchResponse = await API.get('/network/contentsearch/',
                 {
@@ -76,26 +82,30 @@ const SearchBox = () => {
                     }
                 },
             )
-            const data = searchResponse.data
+            let data = searchResponse.data
             if (data.Response === 'False') {
                 setErrorState(`(${data.Error})`)
                 console.log('error')
+                setShowLoading(false)
                 return;
             }
-            if('Episodes' in data){
+            if ('Episodes' in data) {
                 setEpisodesList(data.Episodes)
                 setErrorState('')
+                setShowLoading(false)
                 return;
             }
             setErrorState('')
             if ('Title' in data) {
+                data = [data]
                 const prunedData = data.filter(val => val.Poster !== 'N/A');
-                setSearchResults([prunedData])
+                setSearchResults(prunedData)
             } else {
                 const searchData = data.Search
                 const prunedData = searchData.filter(val => val.Poster !== 'N/A');
                 setSearchResults(prunedData)
             }
+            setShowLoading(false)
             return;
 
         } catch (error) {
@@ -174,6 +184,11 @@ const SearchBox = () => {
                     </div>}
                 <button className='loginbutton' id='search-button' type="submit">Search</button>
             </form>
+            {showLoading && (
+                <div style={{ marginTop: '5px', marginBottom: '5px' }}>
+                    Searching...
+                </div>
+            )}
             <SearchResults
                 searchResultsList={searchResults}
                 contentTypeMovies={contentTypeMovies}

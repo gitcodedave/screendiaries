@@ -8,7 +8,7 @@ import LeaveReview from "./leavereview";
 const ContentBox = () => {
     const [cookies] = useCookies(['profileID', 'AccessToken']);
     const location = useLocation()
-    const [contentData, setContentData] = useState(location.state)
+    const [contentData, setContentData] = useState()
     const [myRating, setMyRating] = useState('')
     const [hasRating, setHasRating] = useState(false)
     const [inQueue, setInQueue] = useState(false)
@@ -39,7 +39,7 @@ const ContentBox = () => {
     const handleRemoveFromQueueClick = async (e) => {
         try {
             const deleteFromQueueResponse = await API.delete(`network/myqueuedelete/${params.imdbID}/${cookies.profileID}/`)
-            if (deleteFromQueueResponse.status === 204){
+            if (deleteFromQueueResponse.status === 204) {
                 setInQueue(false)
                 setAddToQueueButton(true);
             }
@@ -68,35 +68,16 @@ const ContentBox = () => {
             console.log(error, 'Not able to add to watchlist')
         }
 
-
-        // try {
-        //     const deleteFromQueueResponse = await API.delete(`network/myqueuedelete/${params.imdbID}/${cookies.profileID}/`)
-        //     if (deleteFromQueueResponse.status === 204){
-        //         setInQueue(false)
-        //         setAddToQueueButton(true);
-        //     }
-        // } catch (error) {
-        //     console.log(error, 'Not able to delete queue item')
-        // }
     }
     const handleNotWatchedClick = async (e) => {
         try {
             const deleteFromWatchListResponse = await API.delete(`network/mywatchlistdelete/${params.imdbID}/${cookies.profileID}/`)
-            if (deleteFromWatchListResponse.status === 204){
+            if (deleteFromWatchListResponse.status === 204) {
                 setWatched(false)
             }
         } catch (error) {
             console.log(error, 'Not able to delete watchlist item')
         }
-        // try {
-        //     const deleteFromQueueResponse = await API.delete(`network/myqueuedelete/${params.imdbID}/${cookies.profileID}/`)
-        //     if (deleteFromQueueResponse.status === 204){
-        //         setInQueue(false)
-        //         setAddToQueueButton(true);
-        //     }
-        // } catch (error) {
-        //     console.log(error, 'Not able to delete queue item')
-        // }
     }
 
 
@@ -153,8 +134,9 @@ const ContentBox = () => {
         };
 
         const fetchContentData = async () => {
+            let content;
             try {
-                const content = await API.get(`/network/content/${params.imdbID}`, {
+                content = await API.get(`/network/content/${params.imdbID}`, {
                     headers: {
                         Authorization: `JWT ${cookies.AccessToken}`
                     }
@@ -162,15 +144,18 @@ const ContentBox = () => {
                 if (content.status === 200) {
                     setContentData(content.data);
                 }
+
             } catch (error) {
                 console.log('An error occurred fetching the content data in ContentBox', error);
             }
         };
+
         if (location.state) {
-            setContentData(location.state);
+            setContentData(location.state)
         } else {
             fetchContentData();
         }
+
         fetchMyRating()
         checkInQueue()
         checkInWatchlist()
@@ -223,18 +208,18 @@ const ContentBox = () => {
                     </div>
                 </div>
             </div>
-                        <div className='contentallbuttons'>
-                    <div className='contentinfobuttons'>
-                        {!watched && addToQueueButton && <button className='queue' onClick={handleAddToQueueClick}><i className="fas fa-plus"></i> Add to queue</button>}
-                        {!watched && inQueue && <button className='added' onClick={handleRemoveFromQueueClick}>In my queue <i className="fas fa-check"></i></button>}
-                        {watched && <button className='watched' onClick={handleNotWatchedClick}>Watched <i className="fas fa-check"></i></button>}
-                        {!watched && <button className='notwatched' onClick={handleWatchedClick}>Watched <i className="fa-solid fa-question"></i></button>}
-                    </div>
-                    <div className='contentinfobuttons'>
-                        {!watched && contentData && <button className='currentlywatching'><i className="fas fa-clock"></i> Watching</button>}
-                        {contentData && <button className='whoswatching'><i className="fa-solid fa-eye"></i> Who's watching?</button>}
-                    </div>
-                    </div>
+            <div className='contentallbuttons'>
+                <div className='contentinfobuttons'>
+                    {!watched && addToQueueButton && <button className='queue' onClick={handleAddToQueueClick}><i className="fas fa-plus"></i> Add to queue</button>}
+                    {!watched && inQueue && <button className='added' onClick={handleRemoveFromQueueClick}>In my queue <i className="fas fa-check"></i></button>}
+                    {watched && <button className='watched' onClick={handleNotWatchedClick}>Watched <i className="fas fa-check"></i></button>}
+                    {!watched && <button className='notwatched' onClick={handleWatchedClick}>Watched <i className="fa-solid fa-question"></i></button>}
+                </div>
+                <div className='contentinfobuttons'>
+                    {!watched && contentData && <button className='currentlywatching'><i className="fas fa-clock"></i> Watching</button>}
+                    {contentData && <button className='whoswatching'><i className="fa-solid fa-eye"></i> Who's watching?</button>}
+                </div>
+            </div>
             <LeaveReview />
         </div>
     )

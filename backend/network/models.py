@@ -51,6 +51,7 @@ class Content(models.Model):
     poster = models.URLField()
     runtime = models.CharField(max_length=50)
     imdbid = models.CharField(max_length=50, primary_key=True)
+    seriesid = models.CharField(max_length=50, null=True)
 
 
 class WatchListItem(models.Model):

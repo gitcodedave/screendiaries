@@ -16,6 +16,7 @@ djangorestframework-simplejwt = "*"
 django-cors-headers = "*"
 django-default-imagefield = "*"
 django-cleanup = "*"
+django-filter = "*"
 
 [dev-packages]
 

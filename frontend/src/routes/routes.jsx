@@ -8,6 +8,8 @@ import EditProfilePage from '../pages/editprofilepage';
 import SearchPage from '../pages/searchpage';
 import ContentPage from '../pages/contentpage';
 import WatchListPage from '../pages/watchlistpage';
+import OtherProfilePage from '../pages/otherprofilepage';
+import FriendsListPage from '../pages/friendslistpage';
 
 export function AppRoutes() {
     return (
@@ -19,10 +21,12 @@ export function AppRoutes() {
                 {/* Protected Routes */}
                 <Route element={<ProtectedRoute />}>
                     <Route exact path="/content/:imdbID" element={<ContentPage />} />
+                    <Route exact path="/profile/:profileID" element={<OtherProfilePage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/editprofile" element={<EditProfilePage />} />
                     <Route path="/search" element={<SearchPage />} />
-                    <Route path="/mywatchlist" element={<WatchListPage />} />
+                    <Route path="/mywatchlist/:user_id" element={<WatchListPage />} />
+                    <Route path="/friendslist/:user_id" element={<FriendsListPage />} />
                 </Route>
 
                 <Route path="/" element={<Navigate to="/profile" />} />

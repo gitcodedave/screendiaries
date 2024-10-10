@@ -1,12 +1,15 @@
 import { useCookies } from "react-cookie";
 import { API } from "../api/api";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const SearchResults = ({ searchResultsList, episodesList, contentTypeMovies, contentTypeSeries, contentTypeSeason, contentTypeEpisode, contentType }) => {
     const [cookies] = useCookies('AccessToken')
     const navigate = useNavigate()
+    const [showLoading, setShowLoading] = useState(false)
 
     const handleResultClick = async (e, i) => {
+        setShowLoading(true)
         let searchRequestSuccess = false;
         let postRequestSuccess = false
         let imdbIDParam;
@@ -64,7 +67,7 @@ const SearchResults = ({ searchResultsList, episodesList, contentTypeMovies, con
         let uploadContent;
         if (searchRequestSuccess) {
             try {
-                const { Title, Year, Director, Actors, Genre, Plot, Poster, Runtime, Season = null, Episode = null } = searchResponse.data
+                const { Title, Year, Director, Actors, Genre, Plot, Poster, Runtime, Season = null, Episode = null, seriesID = null } = searchResponse.data
                 const contentData = {
                     "imdbid": imdbID,
                     "content_type": contentType,
@@ -77,7 +80,8 @@ const SearchResults = ({ searchResultsList, episodesList, contentTypeMovies, con
                     "genre": Genre,
                     "plot": Plot,
                     "poster": Poster,
-                    "runtime": Runtime
+                    "runtime": Runtime, 
+                    "seriesid": seriesID
                 }
                 uploadContent = await API.post('/network/content/', contentData,
                     {
@@ -98,13 +102,18 @@ const SearchResults = ({ searchResultsList, episodesList, contentTypeMovies, con
                 }
             }
             if (postRequestSuccess) {
-                navigate(`/content/${imdbID}`, { state: uploadContent.data })
+                navigate(`/content/${imdbID}`)
             }
         }
     }
 
     return (
         <div>
+            {showLoading && (
+            <div className='clickresultloading'>
+               New Content! Loading...
+            </div>
+            )}
             <table className='searchresults'>
                 <tbody>
                     {contentTypeMovies && searchResultsList.map((result, i) => (
@@ -121,15 +130,6 @@ const SearchResults = ({ searchResultsList, episodesList, contentTypeMovies, con
                             <td key={`${i}-${result.Title}-year`}>{result.Year}</td>
                         </tr>
                     ))}
-                    {contentTypeSeason && searchResultsList.map((result, i) => (
-                        <tr className='searchresults' key={`row-${i}-${result.Title}`}>
-                            <td key={`${i}-${result.Title}`}>{result.Title}</td>
-                            <td key={`${i}-${episodesList.length}-episodes`}>{`${episodesList.length} episodes`}</td>
-                            <td key={`${i}-season-${result.Season}`}>{`Season ${result.Season}/${result.totalSeasons}`}</td>
-                        </tr>
-                    ))}
-                    <tr><td style={{ color: 'rgb(221, 216, 208)' }}>|</td></tr>
-
                     {contentTypeSeason && episodesList.map((episode, i) => (
                         <tr className='searchresults' key={`row-${i}-${episode.Title}`} onClick={(e) => handleResultClick(e, i)}>
                             <td key={`${i}-space`}></td>
@@ -141,7 +141,6 @@ const SearchResults = ({ searchResultsList, episodesList, contentTypeMovies, con
                         <tr className='searchresults' key={`row-${i}-${result.Title}`} onClick={(e) => handleResultClick(e, i)} >
                             <td key={`${i}-${result.Title}-poster`}>{<img src={result.Poster} height='100px' alt='no-poster'></img>}</td>
                             <td key={`${i}-${result.Title}`}>{result.Title}</td>
-                            <td key={`${i}-${result.Title}-year`}>{result.Year}</td>
                         </tr>
                     ))}
                 </tbody>

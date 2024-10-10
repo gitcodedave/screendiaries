@@ -7,11 +7,12 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.mixins import ListModelMixin
 from rest_framework.decorators import action
-from rest_framework import status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status, viewsets, filters
 from rest_framework.parsers import MultiPartParser, FormParser
 from network import serializers
 from network.models import ActivityFeedItem, Content, Follow, Message, QueueItem, Rating, RatingComment, RatingReaction, RatingReply, Review, ReviewComment, ReviewReaction, ReviewReply, TopTen, UserProfile, WatchListItem
-from network.serializers import ActivityFeedItemSerializer, ContentSerializer, ContentWithStatusSerializer, FollowSerializer, MessageSerializer, QueueItemSerializer, RatingCommentSerializer, RatingReactionSerializer, RatingReplySerializer, RatingSerializer, ReviewCommentSerializer, ReviewReactionSerializer, ReviewReplySerializer, ReviewSerializer, TopTenSerializer, UserProfileSerializer, WatchListItemSerializer
+from network.serializers import ActivityFeedItemSerializer, ContentSerializer, ContentWithStatusSerializer, FollowSerializer, FollowWithUserProfileSerializer, MessageSerializer, QueueItemSerializer, RatingCommentSerializer, RatingReactionSerializer, RatingReplySerializer, RatingSerializer, ReviewCommentSerializer, ReviewReactionSerializer, ReviewReplySerializer, ReviewSerializer, TopTenSerializer, UserProfileSerializer, WatchListItemSerializer
 import requests
 import os
 
@@ -24,6 +25,9 @@ class UserProfileViewSet(ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
     parser_classes = (MultiPartParser, FormParser)
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ['user__username', 'user__first_name',
+                     'user__last_name']  # Fields to search
 
     @action(detail=False, methods=['GET'])
     def me(self, request):
@@ -36,6 +40,33 @@ class UserProfileViewSet(ModelViewSet):
 class FollowViewSet(ModelViewSet):
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
+
+
+class MyFollowListView(APIView):
+    def get(self, request, user_id):
+        follows = Follow.objects.filter(
+            follower=user_id).order_by('timestamp')
+        serializer = FollowWithUserProfileSerializer(follows, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class MyFollowView(APIView):
+    serializer_class = FollowSerializer
+
+    def get(self, request, follower, following):
+        try:
+            follow = Follow.objects.get(
+                follower=follower, following=following)
+        except Follow.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)    
+        serializer = FollowSerializer(follow)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, follower, following):
+        instance = Follow.objects.get(
+            follower=follower, following=following)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UserFollowCountView(APIView):
@@ -67,18 +98,22 @@ class ContentSearchView(APIView):
             }
         else:
             if params['type'] == 'series' and 'season' in params:
-                api_params = {
-                    't': params['s'],
-                    'season': params['season']
-                }
                 if 'episode' in params:
                     api_params['episode'] = params['episode']
+                    api_params['season'] = params['season']
+                    api_params['t'] = params['t']
+                    api_params['type'] = 'episode'
+                else:
+                    api_params = {
+                        't': params['s'],
+                        'season': params['season'],
+                        'type': 'series'
+                    }
             else:
                 api_params = {
                     's': params['s'],
                     'type': params['type'],
                 }
-
         api_params['apikey'] = str(os.getenv('OMDB_API_KEY'))
         try:
             response = requests.get(omdb_url, params=api_params)
@@ -112,25 +147,29 @@ class MyWatchListView(APIView):
             user_profile_id=user_id).order_by('timestamp')
 
         # Create a dictionary of content_id to status
-        status_dict = {item.content_id: item.status for item in watchlist_items}
+        status_dict = {
+            item.content_id: item.status for item in watchlist_items}
 
         # Create a list of content_ids in the same order as watchlist_items
         content_ids_ordered = [item.content_id for item in watchlist_items]
 
         # Annotate Content objects with status
         case_status = Case(
-            *[When(pk=content_id, then=Value(status)) for content_id, status in status_dict.items()],
+            *[When(pk=content_id, then=Value(status))
+              for content_id, status in status_dict.items()],
             output_field=CharField(),
         )
 
         # Retrieve Content objects and annotate with status
-        content_objects = Content.objects.filter(pk__in=content_ids_ordered).annotate(status=case_status)
+        content_objects = Content.objects.filter(
+            pk__in=content_ids_ordered).annotate(status=case_status)
 
         # Create a dictionary of content_id to Content object for ordering
         content_dict = {content.pk: content for content in content_objects}
 
         # Maintain the order of Content objects based on content_ids_ordered
-        ordered_content = [content_dict[content_id] for content_id in content_ids_ordered]
+        ordered_content = [content_dict[content_id]
+                           for content_id in content_ids_ordered]
 
         # Serialize the ordered Content objects
         serializer = ContentWithStatusSerializer(ordered_content, many=True)
@@ -141,7 +180,8 @@ class MyWatchListView(APIView):
             content_id=content_id, user_profile_id=user_id)
         instance.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
+
+
 class ContentInWatchListView(APIView):
     serializer_class = WatchListItemSerializer
 
