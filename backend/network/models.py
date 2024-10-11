@@ -10,8 +10,10 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 class UserProfile(models.Model):
     bio = models.TextField(blank=True, default='I just joined screendiaries!')
-    profile_picture = models.ImageField(upload_to='network/images', default='network/images/default_profile_img.png', max_length=500)
-    profile_cover = models.ImageField(upload_to='network/images', blank=True, max_length=500)
+    profile_picture = models.ImageField(
+        upload_to='network/images', default='network/images/default_profile_img.png', max_length=500)
+    profile_cover = models.ImageField(
+        upload_to='network/images', blank=True, max_length=500)
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
@@ -107,31 +109,14 @@ class Rating(models.Model):
     content = models.ForeignKey(Content, on_delete=models.CASCADE)
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=['content', 'user_profile'], name='unique_rating')
         ]
 
-    
 
-class ActivityFeedItem(models.Model):
-    ACTIVITY_TYPE_REVIEW = 'Review'
-    ACTIVITY_TYPE_RATING = 'Rating'
-    ACTIVITY_TYPE_COMMENT = 'Comment'
-    ACTIVITY_TYPE_REPLY = 'Reply'
-    ACTIVITY_TYPE_CHOICES = [
-        (ACTIVITY_TYPE_REVIEW, 'Review'),
-        (ACTIVITY_TYPE_RATING, 'Rating'),
-        (ACTIVITY_TYPE_COMMENT, 'Comment'),
-        (ACTIVITY_TYPE_REPLY, 'Reply'),
-    ]
-    activity_type = models.CharField(
-        choices=ACTIVITY_TYPE_CHOICES, max_length=7)
-    activity_id = models.PositiveIntegerField()
-    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    timestamp = models.DateTimeField(auto_now=True)
 
 
 class ReviewComment(models.Model):
@@ -213,6 +198,18 @@ class RatingReaction(models.Model):
     rating = models.ForeignKey(Rating, on_delete=models.CASCADE)
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
 
+class ActivityFeedItem(models.Model):
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, null=True, blank=True)
+    review_comment = models.ForeignKey(ReviewComment, on_delete=models.CASCADE, null=True, blank=True)
+    review_reply = models.ForeignKey(ReviewReply, on_delete=models.CASCADE, null=True, blank=True)
+    review_reaction = models.ForeignKey(ReviewReaction, on_delete=models.CASCADE, null=True, blank=True)
+    rating = models.ForeignKey(Rating, on_delete=models.CASCADE, null=True, blank=True)
+    rating_comment = models.ForeignKey(RatingComment, on_delete=models.CASCADE, null=True, blank=True)
+    rating_reply = models.ForeignKey(RatingReply, on_delete=models.CASCADE, null=True, blank=True)
+    rating_reaction = models.ForeignKey(RatingReaction, on_delete=models.CASCADE, null=True, blank=True)
+    activity_type = models.CharField(max_length=20)
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now=True)
 
 class Message(models.Model):
     MESSAGE_TYPE_CONTENT = 'Content Share'
@@ -223,7 +220,8 @@ class Message(models.Model):
         (MESSAGE_TYPE_ACTIVITY, 'Activity Feed Share'),
         (MESSAGE_TYPE_TEXT, 'Text'),
     ]
-    message_type = models.CharField(choices=MESSAGE_TYPE_CHOICES, max_length=19)
+    message_type = models.CharField(
+        choices=MESSAGE_TYPE_CHOICES, max_length=19)
     content_id = models.PositiveIntegerField(null=True, blank=True)
     activity_feed_id = models.PositiveIntegerField(null=True, blank=True)
     message_text = models.TextField()

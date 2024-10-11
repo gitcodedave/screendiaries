@@ -59,6 +59,7 @@ urlpatterns = router.urls + reviews_router.urls + \
     [path('checkfollow/<int:follower>/<int:following>/', views.MyFollowView.as_view(), name='check-if-follow')] + \
     [path('unfollow/<int:follower>/<int:following>/', views.MyFollowView.as_view(), name='unfollow')] + \
     [path('friendslist/<int:user_id>/', views.MyFollowListView.as_view(), name='follow-list')] + \
+    [path('myactivityfeed/', views.MyActivityFeedView.as_view(), name='activity-feed')] + \
     [path('userfollowcount/<int:user_id>/', views.UserFollowCountView.as_view(), name='user-follow-count')] + \
     [path('userratings/<int:user_id>/', views.UserRatingsView.as_view(), name='user-ratings')] + \
     [path('myrating/<str:content_id>/<int:user_id>/', views.MyRatingView.as_view(), name='my-rating')] + \
@@ -67,5 +68,5 @@ urlpatterns = router.urls + reviews_router.urls + \
     [path('checkinwatchlist/<str:content_id>/<int:user_id>/', views.ContentInWatchListView.as_view(), name='check-in-watchlist')] + \
     [path('allotherreviews/<str:content_id>/<int:user_id>/', views.AllOtherReviewsView.as_view(), name='all-other-reviews')] + \
     [path('contentreviews/<str:content_id>/', views.ContentReviewsView.as_view(), name='content-reviews')] + \
-    [path('contentratings/<str:content_id>/', views.ContentRatingsView.as_view(), name='content-ratings')]
-
+    [path('contentratings/<str:content_id>/',
+          views.ContentRatingsView.as_view(), name='content-ratings')]

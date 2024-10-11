@@ -1,46 +1,31 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { API } from "../api/api";
-import { useCookies } from "react-cookie";
 
 const Navbar = () => {
     const [searchFriend, setSearchFriend] = useState('')
-    const [cookies] = useCookies(['AccessToken'])
+    const navigate = useNavigate()
 
-    const handleSearchFriendClick = async (e) => {
-        e.preventDefault()
-        try {
-            const search = {
-                'search': searchFriend
-            }
-            const searchResponse = await API.get('/network/userprofiles/',
-                {
-                    params: search,
-                    headers: {
-                        Authorization: `JWT ${cookies.AccessToken}`
-                    }
-                },
-            )
-            console.log(searchResponse.data)
-        } catch (error) {
-            console.log(error, 'Unable to find users')
-        }
-    }
+    const handleSearch = (event) => {
+        event.preventDefault();
+        navigate(`/searchuser/${searchFriend}`);
+    };
 
 
 
     return (
         <div className='navbarContainer'>
             <NavLink to='/profile'><img alt='screendiaries-logo' src='/screendiarieslogoflat.png' style={{ height: '40px', marginLeft: '20px' }}></img></NavLink>
-            <form onSubmit={handleSearchFriendClick} style={{ marginLeft: '20px' }}>
+            <form onSubmit={handleSearch} style={{ marginLeft: '20px' }}>
                 <input
                     value={searchFriend}
                     onChange={(e) => setSearchFriend(e.target.value)}
                     style={{ width: '100px' }}
                     placeholder='Find friends'
-                >
-                </input>
-                <img alt='search-icon' onClick={handleSearchFriendClick} src='/search-icon.png' style={{ marginLeft: '10px', height: '12px', marginRight: '30px' }}></img>
+                    type="text"
+                />
+                <button type="submit" style={{ background: 'none', border: 'none', padding: 0, marginLeft: '10px' }}>
+                    <img alt='search-icon' src='/search-icon.png' style={{ height: '12px', marginRight: '30px' }} />
+                </button>
             </form>
             <div className='push'>
                 <NavLink style={{ textDecoration: 'none' }} to='/search'><span style={{ marginRight: '2px', 'color': '#ccc3bc' }}> Content </span></NavLink>

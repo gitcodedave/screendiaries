@@ -110,65 +110,70 @@ const OtherProfileBox = () => {
     }
 
     useEffect(() => {
+        const currentProfileID = Number(params.profileID)
 
-        const checkIfFollow = async () => {
-            try {
-                const checkFollowResponse = await API.get(`network/checkfollow/${cookies.profileID}/${otherUserID}/`)
-                if (checkFollowResponse.status === 200) {
-                    setFollowingState(true)
-                }
-            } catch (error) {
-                console.log(error, 'Did not find follow')
-            }
-        }
-
-        const fetchStats = async () => {
-            try {
-                const reviewCountResponse = await API.get(`network/userreviewcount/${otherUserID}/`)
-                setReviewCount(reviewCountResponse.data)
-            } catch (error) {
-                console.log(error, 'error fetching review count')
-            }
-            try {
-                const ratingCountResponse = await API.get(`network/userratingcount/${otherUserID}/`)
-                setRatingCount(ratingCountResponse.data)
-            } catch (error) {
-                console.log(error, 'error fetching rating count')
-            }
-            try {
-                const followCountResponse = await API.get(`network/userfollowcount/${otherUserID}/`)
-                setFollowCount(followCountResponse.data)
-            } catch (error) {
-                console.log(error, 'error fetching follow count')
-            }
-        }
-
-        const fetchOtherUser = async () => {
-            try {
-                const userDataResponse = await API.get(`/network/userprofiles/${otherUserID}/`, {
-                    headers: {
-                        Authorization: `JWT ${cookies.AccessToken}`
+        if (currentProfileID === cookies.profileID) {
+            navigate(`/profile/`)
+        } else {
+            const checkIfFollow = async () => {
+                try {
+                    const checkFollowResponse = await API.get(`network/checkfollow/${cookies.profileID}/${otherUserID}/`)
+                    if (checkFollowResponse.status === 200) {
+                        setFollowingState(true)
                     }
-                })
-                const userData = userDataResponse.data
-                setProfileNameState(userData.username)
-                let { bio, profile_picture, first_name = false, last_name = false } = userDataResponse.data
-                if (!profile_picture.includes('http://localhost:8000')) {
-                    profile_picture = 'http://localhost:8000' + profile_picture
+                } catch (error) {
+                    console.log(error, 'Did not find follow')
                 }
-                setProfilePictureState(profile_picture)
-                setBioState(bio)
-                setFirstNameState(first_name)
-                setLastNameState(last_name)
-            } catch (error) {
-                console.error('Error refreshing token:', error);
-                return null;
             }
+
+            const fetchStats = async () => {
+                try {
+                    const reviewCountResponse = await API.get(`network/userreviewcount/${otherUserID}/`)
+                    setReviewCount(reviewCountResponse.data)
+                } catch (error) {
+                    console.log(error, 'error fetching review count')
+                }
+                try {
+                    const ratingCountResponse = await API.get(`network/userratingcount/${otherUserID}/`)
+                    setRatingCount(ratingCountResponse.data)
+                } catch (error) {
+                    console.log(error, 'error fetching rating count')
+                }
+                try {
+                    const followCountResponse = await API.get(`network/userfollowcount/${otherUserID}/`)
+                    setFollowCount(followCountResponse.data)
+                } catch (error) {
+                    console.log(error, 'error fetching follow count')
+                }
+            }
+
+            const fetchOtherUser = async () => {
+                try {
+                    const userDataResponse = await API.get(`/network/userprofiles/${otherUserID}/`, {
+                        headers: {
+                            Authorization: `JWT ${cookies.AccessToken}`
+                        }
+                    })
+                    const userData = userDataResponse.data
+                    setProfileNameState(userData.username)
+                    let { bio, profile_picture, first_name = false, last_name = false } = userDataResponse.data
+                    if (!profile_picture.includes('http://localhost:8000')) {
+                        profile_picture = 'http://localhost:8000' + profile_picture
+                    }
+                    setProfilePictureState(profile_picture)
+                    setBioState(bio)
+                    setFirstNameState(first_name)
+                    setLastNameState(last_name)
+                } catch (error) {
+                    console.error('Error refreshing token:', error);
+                    return null;
+                }
+            }
+            fetchOtherUser()
+            fetchStats()
+            fetchQueue()
+            checkIfFollow()
         }
-        fetchOtherUser()
-        fetchStats()
-        fetchQueue()
-        checkIfFollow()
     }, [cookies.AccessToken, cookies.profileID, checkboxState])
 
     return (
@@ -200,14 +205,14 @@ const OtherProfileBox = () => {
                                     ratings
                                 </div>
                             </div>
-                            <div className='stat'>
+                            <NavLink style={{ textDecoration: 'none' }} to={`/friendslist/${otherUserID}`}><div className='stat'>
                                 <div className='statnumber'>
                                     {followCount}
                                 </div>
                                 <div className='statname'>
                                     following
                                 </div>
-                            </div>
+                            </div></NavLink>
                         </div>
                         <div className='profilebio'>
                             {bioState}
@@ -222,7 +227,6 @@ const OtherProfileBox = () => {
                         <button className='profilebutton' onClick={handleFollowClick}>Follow</button>
                     )}
                     <NavLink to={`/mywatchlist/${otherUserID}/`}><button className='profilebutton'>WatchList</button></NavLink>
-                    <button className='profilebutton'>Friends WatchList</button>
                 </div>
                 <div className='profiletoggle'>
                     <input className="input" id="toggle" onClick={handleTypeSelectClick} type="checkbox" />

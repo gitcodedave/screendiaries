@@ -1,18 +1,13 @@
-import json
-from django.shortcuts import render
-from rest_framework.decorators import api_view
 from django.db.models import Case, When, Value, CharField
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
-from rest_framework.mixins import ListModelMixin
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, viewsets, filters
+from rest_framework import status, filters
 from rest_framework.parsers import MultiPartParser, FormParser
-from network import serializers
 from network.models import ActivityFeedItem, Content, Follow, Message, QueueItem, Rating, RatingComment, RatingReaction, RatingReply, Review, ReviewComment, ReviewReaction, ReviewReply, TopTen, UserProfile, WatchListItem
-from network.serializers import ActivityFeedItemSerializer, ContentSerializer, ContentWithStatusSerializer, FollowSerializer, FollowWithUserProfileSerializer, MessageSerializer, QueueItemSerializer, RatingCommentSerializer, RatingReactionSerializer, RatingReplySerializer, RatingSerializer, ReviewCommentSerializer, ReviewReactionSerializer, ReviewReplySerializer, ReviewSerializer, TopTenSerializer, UserProfileSerializer, WatchListItemSerializer
+from network.serializers import ActivityFeedItemReadSerializer, ActivityFeedItemSerializer, ContentSerializer, ContentWithStatusSerializer, FollowSerializer, FollowWithUserProfileSerializer, MessageSerializer, QueueItemSerializer, RatingCommentSerializer, RatingReactionSerializer, RatingReplySerializer, RatingSerializer, ReviewCommentSerializer, ReviewReactionSerializer, ReviewReplySerializer, ReviewSerializer, TopTenSerializer, UserProfileSerializer, WatchListItemSerializer
 import requests
 import os
 
@@ -58,7 +53,7 @@ class MyFollowView(APIView):
             follow = Follow.objects.get(
                 follower=follower, following=following)
         except Follow.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)    
+            return Response(status=status.HTTP_404_NOT_FOUND)
         serializer = FollowSerializer(follow)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -358,6 +353,21 @@ class MyRatingView(APIView):
 class ActivityFeedItemViewSet(ModelViewSet):
     queryset = ActivityFeedItem.objects.all()
     serializer_class = ActivityFeedItemSerializer
+
+
+class MyActivityFeedView(APIView):
+    serializer_class = ActivityFeedItemSerializer
+
+    def get(self, request):
+        user_list = request.GET.get('user_list')
+        if user_list:
+            user_list = user_list.split(',')
+            user_list = [int(num) for num in user_list]
+        else:
+            user_list = []
+        activity_feed = ActivityFeedItem.objects.select_related().filter(user_profile__in=user_list).order_by('timestamp')
+        serializer = ActivityFeedItemReadSerializer(activity_feed, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ReviewCommentViewSet(ModelViewSet):

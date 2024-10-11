@@ -10,6 +10,8 @@ import ContentPage from '../pages/contentpage';
 import WatchListPage from '../pages/watchlistpage';
 import OtherProfilePage from '../pages/otherprofilepage';
 import FriendsListPage from '../pages/friendslistpage';
+import SearchUserPage from '../pages/searchuserpage';
+import ActivityFeedPage from '../pages/activityfeedpage';
 
 export function AppRoutes() {
     return (
@@ -25,6 +27,8 @@ export function AppRoutes() {
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/editprofile" element={<EditProfilePage />} />
                     <Route path="/search" element={<SearchPage />} />
+                    <Route path="/activityfeed" element={<ActivityFeedPage />} />
+                    <Route path="/searchuser/:search_query" element={<SearchUserPage />} />
                     <Route path="/mywatchlist/:user_id" element={<WatchListPage />} />
                     <Route path="/friendslist/:user_id" element={<FriendsListPage />} />
                 </Route>

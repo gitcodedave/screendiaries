@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useParams } from "react-router-dom"
 import { useCookies } from "react-cookie"
 import { API } from "../api/api"
@@ -41,6 +41,8 @@ const LeaveReview = () => {
     const handleClick = async (e) => {
         let uploadReview;
         let uploadRating;
+        let createActivityReview;
+        let createActivityRating;
         e.preventDefault()
         if (ratingState === '') {
             setErrorState('(Please choose a rating)')
@@ -75,10 +77,9 @@ const LeaveReview = () => {
                             }
                         }
                     )
-                    console.log(uploadRating)
                 } catch (error) {
                     console.log(error, 'Rating exists already, updating')
-                    if(error.status === 400){
+                    if (error.status === 400) {
                         uploadRating = await API.patch(`/network/myrating/${imdbID}/${cookies.profileID}/`, ratingData,
                             {
                                 headers: {
@@ -96,7 +97,26 @@ const LeaveReview = () => {
                 return;
             }
             if (uploadReview.status === 201) {
-                window.location.reload();
+                try {
+                    const reviewPostedData = uploadReview.data
+                    const activityFeedData = {
+                        "user_profile": cookies.profileID,
+                        "review": reviewPostedData.id,
+                        "activity_type": 'Review'
+                    }
+                    createActivityReview = await API.post('/network/activityfeeditems/', activityFeedData,
+                        {
+                            headers: {
+                                Authorization: `JWT ${cookies.AccessToken}`
+                            }
+                        }
+                    )
+                } catch (error) {
+                    console.log(error, 'Unable to add to activity feed')
+                }
+                if (createActivityReview.status === 201) {
+                    window.location.reload();
+                }
             }
             return;
         } else {
@@ -113,10 +133,11 @@ const LeaveReview = () => {
                         }
                     }
                 )
+
                 console.log(uploadRating)
             } catch (error) {
                 console.log(error, 'Rating exists already, updating')
-                if(error.status === 400){
+                if (error.status === 400) {
                     uploadRating = await API.patch(`/network/myrating/${imdbID}/${cookies.profileID}/`, ratingData,
                         {
                             headers: {
@@ -128,8 +149,25 @@ const LeaveReview = () => {
                 if (uploadRating.status === 200) {
                     window.location.reload();
                 }
-            } 
-            if (uploadRating.status === 201) {
+            }
+            try {
+                const ratingPostedData = uploadRating.data
+                const activityFeedData = {
+                    "user_profile": cookies.profileID,
+                    "rating": ratingPostedData.id,
+                    "activity_type": 'Rating'
+                }
+                createActivityRating = await API.post('/network/activityfeeditems/', activityFeedData,
+                    {
+                        headers: {
+                            Authorization: `JWT ${cookies.AccessToken}`
+                        }
+                    }
+                )
+            } catch (error) {
+                console.log(error, 'Unable to add to activity feed')
+            }
+            if (createActivityRating.status === 201) {
                 window.location.reload();
             }
         }
@@ -169,7 +207,7 @@ const LeaveReview = () => {
                 </div>
             </div>
             <div className='ratingerror'>
-              <span style={{color: '#fd5c63'}}> {`${errorState}`}</span>
+                <span style={{ color: '#fd5c63' }}> {`${errorState}`}</span>
             </div>
             <Reviews />
         </div>
