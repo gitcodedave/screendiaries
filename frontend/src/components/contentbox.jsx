@@ -8,11 +8,12 @@ import LeaveReview from "./leavereview";
 const ContentBox = () => {
     const [cookies] = useCookies(['profileID', 'AccessToken']);
     const location = useLocation()
-    const [contentData, setContentData] = useState()
     const [myRating, setMyRating] = useState('')
     const [hasRating, setHasRating] = useState(false)
+    const [contentData, setContentData] = useState()
     const [inQueue, setInQueue] = useState(false)
     const [watched, setWatched] = useState(false)
+    const [currentlyWatching, setCurrentlyWatching] = useState(false)
     const [addToQueueButton, setAddToQueueButton] = useState(true)
     const params = useParams()
 
@@ -65,21 +66,76 @@ const ContentBox = () => {
                 handleRemoveFromQueueClick()
             }
         } catch (error) {
+            console.log(error, 'Not able to add to watchlist, updating')
+            try {
+                const checkInWatchlist = await API.get(`/network/checkinwatchlist/${params.imdbID}/${cookies.profileID}/`, {
+                    headers: {
+                        Authorization: `JWT ${cookies.AccessToken}`
+                    }
+                });
+                const watchListData = checkInWatchlist.data
+                try {
+                    const { id } = watchListData
+                    const updateWatchListData = {
+                        "status": "Watched"
+                    }
+
+                    const patchWatchListResponse = await API.patch(`/network/watchlistitems/${id}/`, updateWatchListData, {
+                        headers: {
+                            Authorization: `JWT ${cookies.AccessToken}`
+                        }
+                    });
+                    if (patchWatchListResponse.status === 200){
+                        setWatched(true)
+                    }
+                } catch (error) {
+                    console.log(error, 'Unable to patch watchlist')
+                }
+
+
+            } catch (error) {
+                console.log(error, 'Unable to find in watchlist')
+            }
+
+        }
+
+    }
+
+    const handleCurrentlyWatchingClick = async (e) => {
+        try {
+            const watchListData = {
+                'user_profile': cookies.profileID,
+                'content': params.imdbID,
+                'status': 'Currently Watching'
+            }
+            const addToWatchListResponse = await API.post(`/network/watchlistitems/`, watchListData, {
+                headers: {
+                    Authorization: `JWT ${cookies.AccessToken}`
+                }
+            });
+            if (addToWatchListResponse.status === 201) {
+                setCurrentlyWatching(true)
+                await handleRemoveFromQueueClick()
+                setAddToQueueButton(false)
+            }
+        } catch (error) {
             console.log(error, 'Not able to add to watchlist')
         }
 
     }
+
     const handleNotWatchedClick = async (e) => {
         try {
             const deleteFromWatchListResponse = await API.delete(`network/mywatchlistdelete/${params.imdbID}/${cookies.profileID}/`)
             if (deleteFromWatchListResponse.status === 204) {
                 setWatched(false)
+                setAddToQueueButton(true)
+                setCurrentlyWatching(false)
             }
         } catch (error) {
             console.log(error, 'Not able to delete watchlist item')
         }
     }
-
 
     useEffect(() => {
         const checkInQueue = async () => {
@@ -107,9 +163,16 @@ const ContentBox = () => {
                     }
                 });
                 if (checkInWatchListResponse.status === 200) {
-                    setInQueue(false);
-                    setAddToQueueButton(true);
-                    setWatched(true)
+                    const data = checkInWatchListResponse.data
+                    const { status } = data
+                    if(status === 'Watched'){
+                        setInQueue(false);
+                        setAddToQueueButton(true);
+                        setWatched(true)
+                    } else {
+                        setCurrentlyWatching(true)
+                        setAddToQueueButton(false)
+                    }
                 }
             } catch (error) {
                 if (error.status === 404)
@@ -175,7 +238,7 @@ const ContentBox = () => {
                     <div className='contentinfoitem'>
                         {hasRating && (
                             <>
-                                <span style={{ color: '#018749' }}>My rating: {myRating}/5 <i className="fa-solid fa-star"></i></span>
+                                <span style={{ color: '#5E665B' }}>My rating: {myRating}/5 <i className="fa-solid fa-star"></i></span>
                             </>
                         )}
                     </div>
@@ -216,7 +279,7 @@ const ContentBox = () => {
                     {!watched && <button className='notwatched' onClick={handleWatchedClick}>Watched <i className="fa-solid fa-question"></i></button>}
                 </div>
                 <div className='contentinfobuttons'>
-                    {!watched && contentData && <button className='currentlywatching'><i className="fas fa-clock"></i> Watching</button>}
+                    {!watched && !currentlyWatching && contentData && <button className='currentlywatching' onClick={handleCurrentlyWatchingClick}><i className="fas fa-clock"></i> Watching</button>}
                     {contentData && <button className='whoswatching'><i className="fa-solid fa-eye"></i> Who's watching?</button>}
                 </div>
             </div>

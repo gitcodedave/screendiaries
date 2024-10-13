@@ -64,11 +64,8 @@ const FriendsListBox = () => {
                     <div className='emptyqueue'>
                         <div>
                             You haven't followed anyone yet. <br></br>
+                            Use the search bar at the top! <br></br>
                         </div>
-                        <div>
-                            <NavLink to='/search'><img height={'15px'} style={{ marginTop: '5px' }} alt='search-icon' src='/search-icon.png'></img></NavLink>
-                        </div>
-                        <Link to={'/search'}>Search</Link>
                     </div>
                 )}
                 {showFindContent && showTheirList && (

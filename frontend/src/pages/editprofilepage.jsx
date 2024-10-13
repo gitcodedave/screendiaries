@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react"
 import { API } from "../api/api";
 import { useCookies } from "react-cookie";
 import Navbar from "../components/navbar";
-import { Link } from "react-router-dom";
 import Table from 'react-bootstrap/Table';
 // import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -17,7 +16,7 @@ const EditProfilePage = () => {
     const [errorMessage, setErrorMessageState] = useState('')
     const [previewProfilePic, setPreviewProfilePic] = useState('')
     const profilePictureInputRef = useRef();
-    const [cookies] = useCookies(['profileID', 'AccessToken']);
+    const [cookies, setCookie] = useCookies(['profileID', 'AccessToken', 'profile_picture']);
 
 
 
@@ -71,7 +70,12 @@ const EditProfilePage = () => {
             setProfilePictureFile(null);
             setPreviewProfilePic('');
             setErrorMessageState('(Profile Image Updated!)')
+            const data = response.data
+            const { profile_picture } = data
+            setCookie('profile_picture', profile_picture, {path: '/'})
             return response;
+
+
         } catch (error) {
             setErrorMessageState('Error uploading image')
         }
@@ -110,10 +114,14 @@ const EditProfilePage = () => {
     return (
         <div>
             <Navbar />
-                <Link style={{marginLeft: '10px'}} to={'/profile'}>Back</Link>
             <div className='editprofilepage'>
-                <div style={{ display: 'flex', flex: 'column', justifyContent: 'center' }}>
-                    {previewProfilePic && <img src={previewProfilePic} alt="Selected Preview" style={{ marginTop: '10px', maxWidth: '20%' }} />}
+                <div className='uploadprofilepic'>
+                    <div>
+                        Upload A New Profile Pic
+                    </div>
+                </div>
+                <div style={{ marginTop: '20px', display: 'flex', flex: 'column', justifyContent: 'center' }}>
+                    {previewProfilePic && <img src={previewProfilePic} alt="Selected Preview" style={{ marginTop: '10px', maxWidth: '20%', height: '100%' }} />}
                     <form onSubmit={handleProfilePicSubmit} ref={profilePictureInputRef}>
                         <input
                             id='profile-pic-box'
@@ -126,7 +134,7 @@ const EditProfilePage = () => {
                 </div>
                 <div className='editprofiletable'>
                     <form onSubmit={handleFormDataSubmit} className='editprofileitems'>
-                        {errorMessage}
+                       <div style={{color: '#fd5c63'}}>{errorMessage}</div>
                         <Table>
                             <tbody>
                                 <tr>
@@ -138,7 +146,7 @@ const EditProfilePage = () => {
                                     <td>{<input
                                         id='first-name-box'
                                         className='loginitem'
-                                        style={{width: '100px'}}
+                                        style={{ width: '100px' }}
                                         type="text"
                                         value={firstNameState}
                                         onChange={(e) => setFirstNameState(e.target.value)}
@@ -147,7 +155,7 @@ const EditProfilePage = () => {
                                     <td>{<input
                                         id='last-name-box'
                                         className='loginitem'
-                                        style={{width: '100px'}}
+                                        style={{ width: '100px' }}
                                         type="text"
                                         value={lastNameState}
                                         onChange={(e) => setLastNameState(e.target.value)}
@@ -155,7 +163,7 @@ const EditProfilePage = () => {
                                     />}</td>
                                     <td>{<input
                                         id='bio-box'
-                                        style={{width: '170px'}}
+                                        style={{ width: '170px' }}
                                         className='loginitem'
                                         type="text"
                                         value={bioState}

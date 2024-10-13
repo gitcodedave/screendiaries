@@ -69,6 +69,15 @@ class ContentWithStatusSerializer(serializers.ModelSerializer):
         fields = ['imdbid', 'content_type', 'season', 'episode', 'title',
                   'year', 'director', 'actors', 'genre', 'plot', 'poster', 'runtime', 'status']
 
+class FriendWatchListSerializer(serializers.ModelSerializer):
+    status = serializers.CharField()
+    user_profile = UserProfileSerializer()
+
+    class Meta:
+        model = Content
+        fields = ['imdbid', 'content_type', 'season', 'episode', 'title',
+                  'year', 'director', 'actors', 'genre', 'plot', 'poster', 'runtime', 'status', 'user_profile']
+
 
 class WatchListItemSerializer(serializers.ModelSerializer):
     class Meta:
@@ -209,12 +218,14 @@ class ActivityFeedItemReadSerializer(serializers.ModelSerializer):
     rating_comment = RatingCommentSerializer()
     rating_reply = RatingReplySerializer()
     rating_reaction = RatingReactionSerializer()
+    in_queue = serializers.BooleanField()
+    in_watchlist = serializers.CharField()
 
     class Meta:
         model = ActivityFeedItem
         fields = ['id', 'activity_type', 'review', 'review_comment', 'review_reply',
                   'review_reaction', 'rating', 'rating_comment',
-                  'rating_reply', 'rating_reaction', 'user_profile', 'timestamp']
+                  'rating_reply', 'rating_reaction', 'user_profile', 'timestamp', 'in_queue', 'in_watchlist']
 
 
 class MessageSerializer(serializers.ModelSerializer):

@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { API } from '../api/api';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
-import { useAuth } from '../context/AuthContext';
 import { NavLink } from 'react-router-dom';
+import ActivityFeedBox from './activityfeedbox';
 
 const ProfileBox = () => {
     const [profileNameState, setProfileNameState] = useState('')
@@ -20,7 +20,6 @@ const ProfileBox = () => {
     const [checkboxState, setCheckboxState] = useState('movies')
     const [cookies] = useCookies(['profileID', 'AccessToken']);
     const navigate = useNavigate()
-    const { logout } = useAuth()
 
     const handleTypeSelectClick = (e) => {
         if (checkboxState === 'movies') {
@@ -104,26 +103,20 @@ const ProfileBox = () => {
 
         const fetchUser = async () => {
             try {
-                const userDataResponse = await API.get('/auth/users/me/', {
-                    headers: {
-                        Authorization: `JWT ${cookies.AccessToken}`
-                    }
-                })
-                const userData = userDataResponse.data
-                setProfileNameState(userData.username)
                 const userProfileResponse = await API.get(`/network/userprofiles/me`, {
                     headers: {
                         Authorization: `JWT ${cookies.AccessToken}`
                     }
                 })
-                let { bio, profile_picture, first_name = false, last_name = false } = userProfileResponse.data
+                let { bio, profile_picture, first_name = false, last_name = false, username } = userProfileResponse.data
+                setProfileNameState(username)
                 profile_picture = 'http://localhost:8000' + profile_picture
                 setProfilePictureState(profile_picture)
                 setBioState(bio)
                 setFirstNameState(first_name)
                 setLastNameState(last_name)
             } catch (error) {
-                console.error('Error refreshing token:', error);
+                console.error('Error fetching user', error);
                 return null;
             }
         }
@@ -140,7 +133,7 @@ const ProfileBox = () => {
                 </div>
                 <div className='profileinfocontainer'>
                     <div className='profileimageandname'>
-                        <img src={profilePictureState} alt='profile pic' width='100px'></img>
+                        <img src={profilePictureState} alt='profile pic' style={{clipPath: 'circle()', height: '100px', width: '100px', objectFit: 'cover'}} ></img>
                         {firstNameState && firstNameState + ' ' + lastNameState}
                     </div>
                     <div className='profilestatscontainer'>
@@ -178,7 +171,7 @@ const ProfileBox = () => {
                 <div className='profilebuttons'>
                     <button className='profilebutton' onClick={handleEditProfileClick}>Edit Profile</button>
                    <NavLink to={`/mywatchlist/${cookies.profileID}/`}><button className='profilebutton'>My WatchList</button></NavLink>
-                    <button className='profilebutton'>Friends WatchList</button>
+                   <NavLink to={`/friendwatchlist/`}><button className='profilebutton'>Friends WatchList</button></NavLink>
                 </div>
                 <div className='profiletoggle'>
                     <input className="input" id="toggle" onClick={handleTypeSelectClick} type="checkbox" />
@@ -228,9 +221,7 @@ const ProfileBox = () => {
                     ))}
                 </div>
                 <div className='separator'></div>
-                <div className='logoutbutton'>
-                    <button onClick={logout}>Logout</button>
-                </div>
+                <ActivityFeedBox  />
             </div>
         </div>
 

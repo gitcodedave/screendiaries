@@ -1,10 +1,13 @@
 body {
   background-color: rgb(221, 216, 208);
   min-height: '100vh';
-  color: #92765f;
+  color: #5E665B;
   background-image: url('/static/backgroundpopcorn.jpg');
   background-size: 50px;
   background-repeat: repeat;
+}
+button:hover {
+  cursor:pointer;
 }
 
 .main {
@@ -22,10 +25,14 @@ body {
   padding-top: 5px;
   padding-bottom: 5px;
   z-index: 10;
+  height: 40px;
 }
 
 .push {
   margin-left: auto;
+}
+.push a:hover {
+  color: #5E665B;
 }
 
 .navbar {
@@ -40,7 +47,7 @@ body {
   margin-top: 10px;
   width: 100%;
   height: 0.5px;
-  background-color: #92765f;
+  background-color: #5E665B;
 }
 
 .profilecontainer {
@@ -74,6 +81,10 @@ body {
   gap: 5px;
   margin-left: 10px;
   font-weight: bold;
+}
+.profileimage {
+  margin-left: 10px;
+  outline-style: solid;
 }
 
 .profilestatscontainer {
@@ -121,7 +132,7 @@ button.profilebutton {
   background-color: #ffffff;
   outline: none;
   border: 0px;
-  color: #92765f;
+  color: #5E665B;
   height: 30px;
 }
 
@@ -178,7 +189,7 @@ tr.searchresults:hover {
   border-top: none;
   border-left: none;
   border-right: none;
-  color: #92765f;
+  color: #5E665B;
   background-color: rgb(255, 255, 255);
   width: 300px;
   height: 40px;
@@ -197,6 +208,7 @@ tr.searchresults:hover {
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
+  margin-top: 10px;
 }
 
 .searchitem {
@@ -204,7 +216,7 @@ tr.searchresults:hover {
   border-top: none;
   border-left: none;
   border-right: none;
-  color: #92765f;
+  color: #5E665B;
   background-color: rgb(255, 255, 255);
   width: 300px;
   height: 40px;
@@ -218,7 +230,7 @@ tr.searchresults:hover {
   border-top: none;
   border-left: none;
   border-right: none;
-  color: #92765f;
+  color: #5E665B;
   background-color: rgb(255, 255, 255);
   width: 80px;
   height: 40px;
@@ -229,8 +241,8 @@ tr.searchresults:hover {
 
 .loginbutton {
   border-radius: 10px;
-  color: #92765f;
-  outline-color: #92765f;
+  color: #5E665B;
+  outline-color: #5E665B;
   outline-style: solid;
   outline-width: 1px;
   border: 0px;
@@ -242,8 +254,13 @@ tr.searchresults:hover {
 }
 
 .loginbutton:hover {
-  background-color: #92765f;
+  background-color: #5E665B;
   color: white;
+}
+
+.uploadprofilepic {
+  font-family: 'Playfair display';
+  font-size: 30px;
 }
 
 .editprofilepage {
@@ -272,6 +289,11 @@ tr.searchresults:hover {
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
+}
+
+.friendwatchlistprofile {
+  display: flex;
+  align-items: center;
 }
 
 .searchbox {
@@ -335,7 +357,9 @@ img.contentposter {
 }
 
 .queuelabel {
+  margin-left: 10px;
   font-family: 'Playfair display';
+  font-weight: bold;
 }
 
 .queuecontainer {
@@ -372,7 +396,7 @@ img.contentposter {
   opacity: 0;
   transition: .2s ease;
   color: white;
-  background-color: #008CBA;
+  background-color: #5E665B;
 }
 
 .queueimageandoverlay:hover .overlay {
@@ -399,7 +423,7 @@ button.queue {
   background-color: #ffffff;
   outline: none;
   border: 0px;
-  color: #92765f;
+  color: #5E665B;
   height: 30px;
   margin-right: 10px;
   margin-top: 2.5px;
@@ -407,7 +431,7 @@ button.queue {
 }
 
 button.queue:hover {
-  background-color: #92765f;
+  background-color: #5E665B;
   color: #ffffff;
 }
 
@@ -415,7 +439,7 @@ button.added {
   width: 140px;
   font-size: 14px;
   border-radius: 10px;
-  background-color: #92765f;
+  background-color: #5E665B;
   outline: none;
   border: 0px;
   color: white;
@@ -432,14 +456,14 @@ button.whoswatching {
   background-color: white;
   outline-width: 1px;
   border: 0px;
-  color: #92765f;
+  color: #5E665B;
   height: 30px;
   margin-top: 2.5px;
   margin-bottom: 2.5px;
 }
 
 button.whoswatching:hover {
-  background-color: #92765f;
+  background-color: #5E665B;
   color: #ffffff;
 }
 
@@ -450,7 +474,21 @@ button.currentlywatching {
   background-color: white;
   outline-width: 1px;
   border: 0px;
-  color: #92765f;
+  color: #5E665B;
+  height: 30px;
+  margin-top: 2.5px;
+  margin-bottom: 2.5px;
+  margin-right: 10px;
+}
+
+button.clickedcurrentlywatching {
+  width: 140px;
+  font-size: 14px;
+  border-radius: 10px;
+  background-color: #5E665B;
+  outline-width: 1px;
+  border: 0px;
+  color: white;
   height: 30px;
   margin-top: 2.5px;
   margin-bottom: 2.5px;
@@ -458,7 +496,7 @@ button.currentlywatching {
 }
 
 button.currentlywatching:hover {
-  background-color: #92765f;
+  background-color: #5E665B;
   color: #ffffff;
 }
 
@@ -466,8 +504,8 @@ button.watched {
   width: 140px;
   font-size: 14px;
   border-radius: 10px;
-  background-color: #92765f;
-  outline-color: #92765f;
+  background-color: #5E665B;
+  outline-color: #5E665B;
   outline-style: solid;
   outline-width: 1px;
   border: 0px;
@@ -482,16 +520,16 @@ button.notwatched {
   font-size: 14px;
   border-radius: 10px;
   background-color: rgb(221, 216, 208);
-  box-shadow:inset 0 0 0 2px #92765f;
+  box-shadow:inset 0 0 0 2px #5E665B;
   border: 0px;
-  color: #000000;
+  color: #5E665B;
   height: 30px;
   margin-top: 2.5px;
   margin-bottom: 2.5px;
 }
 
 button.notwatched:hover {
-  background-color: #92765f;
+  background-color: #5E665B;
   color: white
 }
 
@@ -500,7 +538,7 @@ button.notwatched:hover {
 }
 
 input[type='checkbox']#containsspoiler {
-  accent-color: #92765f;
+  accent-color: #5E665B;
 }
 
 .textareacontainer {
@@ -564,9 +602,9 @@ select.leaverating {
   height: 25px;
   border-width: 1px;
   outline-width: 0px;
-  border-color: #92765f;
+  border-color: #5E665B;
   background-color: white;
-  color: #92765f
+  color: #5E665B;
 }
 
 button.submitreview {
@@ -575,9 +613,9 @@ button.submitreview {
   outline-width: 0px;
   border-width: 1px;
   border-style: solid;
-  border-color: #92765f;
+  border-color: #5E665B;
   background-color: white;
-  color: #92765f;
+  color: #5E665B;
 }
 
 
@@ -586,13 +624,13 @@ input[type=file] {
   background-color: rgb(221, 216, 208);
   border: rgb(221, 216, 208);
   display: block;
-  color: #92765f;
+  color: #5E665B;
   font-style: oblique;
 }
 
 input[type="file"]::file-selector-button {
-  border: 1px solid #92765f;
-  color: #92765f;
+  border: 1px solid #5E665B;
+  color: #5E665B;
   padding: 0.2em 0.4em;
   border-radius: 7px;
   background-color: #f3f0ea;
@@ -604,11 +642,11 @@ input[type="file"]::file-selector-button {
 }
 
 a:link {
-  color: #92765f;
+  color: #5E665B;
 }
 
 a:visited {
-  color: #92765f;
+  color: #5E665B;
 }
 
 a:hover {
@@ -624,6 +662,8 @@ a:active {
   pointer-events: none;
   display: flex;
   align-items: center;
+  color: #5E665B;
+
 }
 
 .switch,
@@ -631,6 +671,7 @@ a:active {
 .input:not(:checked)+.label .right {
   pointer-events: all;
   cursor: pointer;
+  color: #5E665B;
 }
 
 
@@ -653,7 +694,7 @@ a:active {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #92765f;
+  background-color: #5E665B;
   -webkit-transition: 0.2s;
   transition: 0.2s;
 }
@@ -672,11 +713,11 @@ a:active {
 }
 
 input:checked+.label .slider {
-  background-color: #92765f;
+  background-color: #5E665B;
 }
 
 input:focus+.label .slider {
-  box-shadow: 0 0 1px #92765f;
+  box-shadow: 0 0 1px #5E665B;
 }
 
 input:checked+.label .slider:before {
@@ -706,4 +747,203 @@ input:checked+.label .slider:before {
   font-weight: bold;
   text-transform: uppercase;
   font-family: sans-serif;
+}
+
+.activityfeedpage{
+  width: 100%;
+  margin-right: 10px;
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.activityfeedcontainer{
+  margin-left: 10px;
+  margin-right: 10px;
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+  align-items: center;
+}
+
+.activityfeeditem{
+  background-color: rgb(241, 237, 230);
+  margin-bottom: 10px;
+  width: 400px;
+  outline-style: solid;
+  outline-width: 0.5px;
+  outline-color: #5E665B;
+}
+
+.activityfeedtype {
+  display: flex;
+  align-items: center;
+
+  justify-content: center;
+  border-bottom: 0.5px solid;
+  margin-bottom: -0.5px;
+  margin-top: 5px;
+  width: 100%;
+  height: 40px;
+}
+
+.activityfeedreviewblock{
+  border-bottom: 0.5px solid;
+  margin-bottom: -0.5px;
+  margin-top: 5px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.activityfeedreview {
+  margin: 6px;
+  text-align: left;
+}
+
+img.activityfeedcontentposter {
+  width: 60px;
+  display: flex;
+}
+
+.activityfeeditemblock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.activityfeedcontentallbuttons{
+  display: flex;
+  flex-direction: column;
+  margin-right: auto;
+  margin-top: 10px;
+  row-gap: 5px
+}
+
+.activityfeedcontentblock {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  border-bottom: 0.5px solid;
+  margin-bottom: -0.5px;
+  width: 100%;
+  padding-bottom: 10px;
+  padding-top: 10px;
+}
+
+.activityfeedengagement {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  height: 40px;
+  color: #5E665B;
+
+}
+
+button.activityfeedqueue {
+  width: 110px;
+  height: 25px;
+  font-size: 10px;
+  border-radius: 10px;
+  background-color: #ffffff;
+  outline: none;
+  border: 0px;
+  color: #5E665B;
+  margin-right: 10px;
+}
+
+button.activityfeedqueue:hover {
+  background-color: #5E665B;
+  color: #ffffff;
+}
+
+button.activityfeedadded {
+  width: 110px;
+  height: 25px;
+  font-size: 10px;
+  border-radius: 10px;
+  background-color: #5E665B;
+  outline: none;
+  border: 0px;
+  color: white;
+  margin-right: 10px;
+}
+
+button.activityfeedwhoswatching {
+  width: 110px;
+  height: 25px;
+  font-size: 10px;
+  border-radius: 10px;
+  background-color: white;
+  outline-width: 1px;
+  border: 0px;
+  color: #5E665B;
+
+}
+
+button.activityfeedwhoswatching:hover {
+  background-color: #5E665B;
+  color: #ffffff;
+}
+
+button.activityfeedcurrentlywatching {
+  width: 110px;
+  height: 25px;
+  font-size: 10px;
+  border-radius: 10px;
+  background-color: white;
+  outline-width: 1px;
+  border: 0px;
+  color: #5E665B;
+  margin-right: 10px;
+}
+
+button.activityfeedclickedcurrentlywatching {
+  width: 110px;
+  height: 25px;
+  font-size: 10px;
+  border-radius: 10px;
+  background-color: #5E665B;
+  outline-width: 1px;
+  border: 0px;
+  color: white;
+  margin-right: 10px;
+}
+
+button.activityfeedcurrentlywatching:hover {
+  background-color: #5E665B;
+  color: #ffffff;
+}
+
+button.activityfeedwatched {
+  width: 110px;
+  height: 25px;
+  font-size: 10px;
+  border-radius: 10px;
+  background-color: #5E665B;
+  outline-color: #5E665B;
+  outline-style: solid;
+  outline-width: 1px;
+  border: 0px;
+  color: white;
+}
+
+button.activityfeednotwatched {
+  width: 110px;
+  height: 25px;
+  font-size: 10px;
+  border-radius: 10px;
+  background-color: rgb(221, 216, 208);
+  box-shadow:inset 0 0 0 2px #5E665B;
+  border: 0px;
+  color: #5E665B;
+}
+
+button.activityfeednotwatched:hover {
+  background-color: #5E665B;
+  color: white
 }

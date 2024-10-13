@@ -1,12 +1,18 @@
-import Navbar from '../components/navbar';
 import ProfileBox from '../components/profilebox'
+import ProfileNavbar from '../components/profilenavbar';
+import { useAuth } from '../context/AuthContext';
 
 const ProfilePage = () => {
+    const { logout } = useAuth()
+
 
     return (
         <div>
-            <Navbar/>
+            <ProfileNavbar />
             <ProfileBox />
+            <div className='logoutbutton'>
+            <button onClick={logout}>Logout</button>
+            </div>
         </div>
     );
 }

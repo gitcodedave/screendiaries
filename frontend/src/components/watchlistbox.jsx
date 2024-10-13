@@ -13,6 +13,17 @@ const WatchListBox = () => {
     const params = useParams()
     const user_id = params.user_id
 
+    const handleRemoveWatchListItemClick = async (content) => {
+        const { imdbid } = content
+        try {
+            const myQueueResponse = await API.delete(`network/mywatchlistdelete/${imdbid}/${cookies.profileID}/`)
+            if (myQueueResponse.status === 204)
+                fetchWatchList()
+        } catch (error) {
+            console.log(error, 'Not able to delete watchlist item')
+        }
+    }
+
     const handleContentClick = (content) => {
         const { imdbid } = content
         navigate(`/content/${imdbid}/`)
@@ -88,6 +99,9 @@ const WatchListBox = () => {
                                 </td>
                                 <td>
                                     {content.status === 'Watched' && <i className="fa-solid fa-check"></i>}
+                                    {content.status === 'Currently Watching' && <i className="fa-regular fa-clock"></i>}
+                                    {Number(user_id) === cookies.profileID && <i style={{ marginTop: '5px', fontSize: '12px', marginLeft: '10px' }} onClick={() => handleRemoveWatchListItemClick(content)} className="fa-solid fa-xmark"></i>}
+
                                 </td>
                             </tr>
                         )}

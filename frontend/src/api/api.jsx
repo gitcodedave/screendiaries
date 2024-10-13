@@ -14,6 +14,7 @@ export const getToken = async (credentials) => {
       }
     })
     response.data.profileID = profileID.data.id
+    response.data.profile_picture = profileID.data.profile_picture
     return response.data;
   } catch (error) {
     console.error('Error getting token:', error);

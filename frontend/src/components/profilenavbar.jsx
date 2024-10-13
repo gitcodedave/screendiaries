@@ -1,30 +1,18 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { useCookies } from "react-cookie";
+import { useState } from "react";
 
-const Navbar = () => {
+const ProfileNavbar = () => {
     const [searchFriend, setSearchFriend] = useState('')
-    const [profilePictureState, setProfilePictureState] = useState('')
     const navigate = useNavigate()
-    const [cookies] = useCookies(['profileID', 'AccessToken', 'profile_picture'])
 
     const handleSearch = (event) => {
         event.preventDefault();
         navigate(`/searchuser/${searchFriend}`);
     };
 
-    useEffect(() => {
-        let profile_picture = cookies.profile_picture
-        if (!profile_picture.includes('http://localhost:8000')) {
-            profile_picture = 'http://localhost:8000' + profile_picture
-        }
-        setProfilePictureState(profile_picture)
-    }, [cookies.profile_picture])
-
     return (
         <div className='navbarContainer'>
-            <NavLink to='/profile'><img src={profilePictureState} style={{padding: '0px', outlineWidth: '0.5px', outlineColor: '#92765f', outlineStyle: 'solid', marginLeft: '10px', clipPath: 'circle()'}} alt='profile pic' width='60px'></img></NavLink>
-
+            <NavLink to='/profile'><img alt='screendiaries-logo' src='/screendiarieslogoalt.png' style={{ height: '30px', marginLeft: '20px' }}></img></NavLink>
             <form onSubmit={handleSearch} style={{ marginLeft: '20px' }}>
                 <input
                     value={searchFriend}
@@ -45,4 +33,4 @@ const Navbar = () => {
     )
 }
 
-export default Navbar;
+export default ProfileNavbar;

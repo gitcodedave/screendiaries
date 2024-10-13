@@ -53,6 +53,7 @@ urlpatterns = router.urls + reviews_router.urls + \
     [path('userreviewcount/<int:user_id>/', views.UserReviewCountView.as_view(), name='user-review-count')] + \
     [path('userratingcount/<int:user_id>/', views.UserRatingCountView.as_view(), name='user-rating-count')] + \
     [path('mywatchlist/<int:user_id>/', views.MyWatchListView.as_view(), name='my-watchlist')] + \
+    [path('friendwatchlist/', views.FriendWatchListView.as_view(), name='friend-watchlist')] + \
     [path('mywatchlistdelete/<str:content_id>/<int:user_id>/', views.MyWatchListView.as_view(), name='watchlist-item-delete')] + \
     [path('myqueue/<int:user_id>/', views.MyQueueView.as_view(), name='my-queue')] + \
     [path('myqueuedelete/<str:content_id>/<int:user_id>/', views.MyQueueView.as_view(), name='queue-item-delete')] + \

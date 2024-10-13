@@ -97,8 +97,9 @@ export const AuthProvider = ({ children }) => {
         return () => clearInterval(intervalId);
     }, [refreshToken]);
 
-    const login = (userData, accessToken, refreshToken, profileID) => {
+    const login = (userData, accessToken, refreshToken, profileID, profile_picture) => {
         setUser(userData);
+        setCookie('profile_picture', profile_picture, {path: '/'})
         setCookie('profileID', profileID, {path: '/'})
         setCookie('User', userData, { path: '/' });
         setCookie('AccessToken', accessToken, { path: '/' });

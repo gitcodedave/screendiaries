@@ -23,7 +23,6 @@ const OtherProfileBox = () => {
     const navigate = useNavigate()
     const params = useParams()
     const otherUserID = params.profileID
-    const { logout } = useAuth()
 
     const handleTypeSelectClick = (e) => {
         if (checkboxState === 'movies') {
@@ -184,7 +183,7 @@ const OtherProfileBox = () => {
                 </div>
                 <div className='profileinfocontainer'>
                     <div className='profileimageandname'>
-                        <img src={profilePictureState} alt='profile pic' width='100px'></img>
+                        <img src={profilePictureState} alt='profile pic' style={{clipPath: 'circle()', height: '100px', width: '100px', objectFit: 'cover'}}></img>
                         {firstNameState && firstNameState + ' ' + lastNameState}
                     </div>
                     <div className='profilestatscontainer'>
@@ -276,9 +275,6 @@ const OtherProfileBox = () => {
                     ))}
                 </div>
                 <div className='separator'></div>
-                <div className='logoutbutton'>
-                    <button onClick={logout}>Logout</button>
-                </div>
             </div>
         </div>
 

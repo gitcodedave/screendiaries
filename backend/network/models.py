@@ -68,6 +68,11 @@ class WatchListItem(models.Model):
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['content', 'user_profile'], name='unique_watchlist_item')
+        ]
 
 class QueueItem(models.Model):
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
