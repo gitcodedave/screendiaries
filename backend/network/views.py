@@ -109,7 +109,7 @@ class ContentSearchView(APIView):
                     's': params['s'],
                     'type': params['type'],
                 }
-        api_params['apikey'] = str(os.getenv('OMDB_API_KEY'))
+        api_params['apikey'] = '3f3860cf'
         try:
             response = requests.get(omdb_url, params=api_params)
             response_data = response.json()

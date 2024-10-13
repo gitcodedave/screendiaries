@@ -23,7 +23,7 @@ const Navbar = () => {
 
     return (
         <div className='navbarContainer'>
-            <NavLink to='/profile'><img src={profilePictureState} style={{padding: '0px', outlineWidth: '0.5px', outlineColor: '#92765f', outlineStyle: 'solid', marginLeft: '10px', clipPath: 'circle()'}} alt='profile pic' width='60px'></img></NavLink>
+            <NavLink to='/profile'><img src={profilePictureState} style={{padding: '0px', outlineWidth: '0.5px', outlineColor: '#92765f', outlineStyle: 'solid', marginLeft: '10px', clipPath: 'circle()', height: '30px', width: '30px', objectFit: 'cover'}} alt='profile pic'></img></NavLink>
 
             <form onSubmit={handleSearch} style={{ marginLeft: '20px' }}>
                 <input

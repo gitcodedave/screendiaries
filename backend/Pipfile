@@ -7,7 +7,7 @@ name = "pypi"
 django = "*"
 django-debug-toolbar = "*"
 djangorestframework = "*"
-mysqlclient = "*"
+mysqlclient = "==2.1.0"
 pillow = "*"
 python-dotenv = "*"
 drf-nested-routers = "*"
@@ -17,6 +17,7 @@ django-cors-headers = "*"
 django-default-imagefield = "*"
 django-cleanup = "*"
 django-filter = "*"
+mysql-connector-python = "*"
 
 [dev-packages]
 

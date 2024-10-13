@@ -91,9 +91,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'screendiaries',
-        'HOST': 'localhost',
         'USER': 'root',
-        'PASSWORD': str(os.getenv('MYSQL_PASSWORD')),
+        'PASSWORD': '',
+        'HOST': 'db',  # This matches the service name in docker-compose
+        'PORT': '3306',
     }
 }
 
@@ -169,8 +170,33 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    # 'https://example.com',
-    # 'https://sub.example.com',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
+    # "http://localhost:3000",  # Add your frontend URL here
+    # "http://127.0.0.1:3000",  # Localhost IP for development
+    # Add other allowed origins as needed
+]
+
+# If you want to allow all origins (for development purposes only, not recommended for production)
+CORS_ALLOW_ALL_ORIGINS = True
+
+# Optionally, allow credentials (e.g., cookies, authorization headers)
+CORS_ALLOW_CREDENTIALS = True
+
+# Specify allowed HTTP methods
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+# Specify allowed headers
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "authorization",
+    "content-type",
+    "origin",
+    "x-csrftoken",
+    "x-requested-with",
 ]
