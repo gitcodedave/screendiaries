@@ -15,7 +15,8 @@
    docker-compose up --build
    ```
 5. Wait until the Docker terminal displays: "Watching for file changes with StatReloader".
-6. Open a web browser and go to `http://localhost:3000/login` to start using the app.
+6. Open a web browser and go to `http://localhost:3000/login` to start using the app. 
+**NOTE this app is currently defaulted to "HTTP" and NOT "HTTPS". Make sure you use HTTP in your localhost link. It will be converted to HTTPS in a future version.
 
 ## Development Notes
 - This app is still in development. Data is saved to the container's DB instance and will not persist in an online database. When you create your user account, you will be the first and only user. To see all features, you may need to create one or two additional mock user accounts.
