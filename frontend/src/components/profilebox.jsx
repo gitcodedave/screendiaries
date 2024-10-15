@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { API } from '../api/api';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
@@ -42,72 +42,73 @@ const ProfileBox = () => {
         e.preventDefault()
         navigate('/editprofile')
     }
-    const fetchQueue = async () => {
+    const fetchQueue = useCallback(async () => {
         try {
-            const myQueueResponse = await API.get(`network/myqueue/${cookies.profileID}/`)
-            const data = myQueueResponse.data
+            const myQueueResponse = await API.get(`network/myqueue/${cookies.profileID}/`);
+            const data = myQueueResponse.data;
             const seriesData = data.filter(val => val.content_type === 'Series' || val.content_type === 'Episode');
             const movieData = data.filter(val => val.content_type === 'Movie');
             if (movieData.length > 0) {
-                setHasMovieQueue(true)
+                setHasMovieQueue(true);
             }
             if (seriesData.length > 0) {
-                setHasSeriesQueue(true)
+                setHasSeriesQueue(true);
             }
-            setMyMovieQueue(movieData)
-            setMySeriesQueue(seriesData)
+            setMyMovieQueue(movieData);
+            setMySeriesQueue(seriesData);
         } catch (error) {
-            setHasMovieQueue(false)
-            setHasSeriesQueue(false)
-            console.log(error, 'Nothing in your queue yet!')
+            setHasMovieQueue(false);
+            setHasSeriesQueue(false);
+            console.log(error, 'Nothing in your queue yet!');
         }
-    }
+    }, [cookies.profileID]);
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const reviewCountResponse = await API.get(`network/userreviewcount/${cookies.profileID}/`)
-                setReviewCount(reviewCountResponse.data)
+                const reviewCountResponse = await API.get(`network/userreviewcount/${cookies.profileID}/`);
+                setReviewCount(reviewCountResponse.data);
             } catch (error) {
-                console.log(error, 'error fetching review count')
+                console.log(error, 'error fetching review count');
             }
             try {
-                const ratingCountResponse = await API.get(`network/userratingcount/${cookies.profileID}/`)
-                setRatingCount(ratingCountResponse.data)
+                const ratingCountResponse = await API.get(`network/userratingcount/${cookies.profileID}/`);
+                setRatingCount(ratingCountResponse.data);
             } catch (error) {
-                console.log(error, 'error fetching rating count')
+                console.log(error, 'error fetching rating count');
             }
             try {
-                const followCountResponse = await API.get(`network/userfollowcount/${cookies.profileID}/`)
-                setFollowCount(followCountResponse.data)
+                const followCountResponse = await API.get(`network/userfollowcount/${cookies.profileID}/`);
+                setFollowCount(followCountResponse.data);
             } catch (error) {
-                console.log(error, 'error fetching follow count')
+                console.log(error, 'error fetching follow count');
             }
-        }
+        };
 
         const fetchUser = async () => {
             try {
                 const userProfileResponse = await API.get(`/network/userprofiles/me`, {
                     headers: {
-                        Authorization: `JWT ${cookies.AccessToken}`
-                    }
-                })
-                let { bio, profile_picture, first_name = false, last_name = false, username } = userProfileResponse.data
-                setProfileNameState(username)
-                profile_picture = 'http://localhost:8000' + profile_picture
-                setProfilePictureState(profile_picture)
-                setBioState(bio)
-                setFirstNameState(first_name)
-                setLastNameState(last_name)
+                        Authorization: `JWT ${cookies.AccessToken}`,
+                    },
+                });
+                let { bio, profile_picture, first_name = false, last_name = false, username } = userProfileResponse.data;
+                setProfileNameState(username);
+                profile_picture = 'http://localhost:8000' + profile_picture;
+                setProfilePictureState(profile_picture);
+                setBioState(bio);
+                setFirstNameState(first_name);
+                setLastNameState(last_name);
             } catch (error) {
                 console.error('Error fetching user', error);
                 return null;
             }
-        }
-        fetchUser()
-        fetchStats()
-        fetchQueue()
-    }, [cookies.AccessToken, cookies.profileID])
+        };
+
+        fetchUser();
+        fetchStats();
+        fetchQueue();
+    }, [cookies.AccessToken, cookies.profileID, fetchQueue]);
 
     return (
         <div className='profilecontainer'>
@@ -122,7 +123,7 @@ const ProfileBox = () => {
                     </div>
                     <div className='profilestatscontainer'>
                         <div className='profilestats'>
-                        <NavLink style={{ textDecoration: 'none' }} to={`/myreviewfeed/${cookies.profileID}`}> <div className='stat'>
+                            <NavLink style={{ textDecoration: 'none' }} to={`/myreviewfeed/${cookies.profileID}`}> <div className='stat'>
                                 <div className='statnumber'>
                                     {reviewCount}
                                 </div>
@@ -131,7 +132,7 @@ const ProfileBox = () => {
                                 </div>
                             </div></NavLink>
                             <NavLink style={{ textDecoration: 'none' }} to={`/myratingfeed/${cookies.profileID}`}><div className='stat'>
-                            <div className='statnumber'>
+                                <div className='statnumber'>
                                     {ratingCount}
                                 </div>
                                 <div className='statname'>
