@@ -478,6 +478,90 @@ class MyActivityFeedView(APIView):
         serializer = ActivityFeedItemReadSerializer(activity_feed, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+class MyReviewFeedView(APIView):
+    serializer_class = ActivityFeedItemSerializer
+
+    def get(self, request, user_id):
+
+        # Get activity feed for the user list, ordered by timestamp
+        activity_feed = ActivityFeedItem.objects.filter(
+            user_profile=user_id, activity_type='Review'
+        ).order_by('-timestamp')
+
+        # Subquery for QueueItem to determine if content is in queue
+        queue_content_review_exists = QueueItem.objects.filter(
+            content_id=OuterRef('review__content__imdbid'),
+            user_profile=user_id
+        )
+
+        # Subquery for WatchListItem to get the status
+        watchlist_content_review_subquery = WatchListItem.objects.filter(
+            content_id=OuterRef('review__content__imdbid'),
+            user_profile=user_id
+        ).values('status')
+
+        # Annotate activity feed with queue and watchlist status
+        activity_feed = activity_feed.annotate(
+            in_queue=Case(
+                When(activity_type='Review', then=Exists(
+                    queue_content_review_exists)),
+                default=Value(False),
+                output_field=CharField()
+            ),
+            in_watchlist=Case(
+                When(activity_type='Review', then=Subquery(
+                    watchlist_content_review_subquery)),
+                default=Value(False),
+                output_field=CharField()
+            )
+        )
+
+        serializer = ActivityFeedItemReadSerializer(activity_feed, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class MyRatingFeedView(APIView):
+    serializer_class = ActivityFeedItemSerializer
+
+    def get(self, request, user_id):
+
+        # Get activity feed for the user list, ordered by timestamp
+        activity_feed = ActivityFeedItem.objects.filter(
+            user_profile=user_id
+        ).order_by('-timestamp')
+
+        # Subquery for QueueItem to determine if content is in queue
+        queue_content_rating_exists = QueueItem.objects.filter(
+            content_id=OuterRef('rating__content__imdbid'),
+            user_profile=user_id
+        )
+
+        # Subquery for WatchListItem to get the status
+        watchlist_content_rating_subquery = WatchListItem.objects.filter(
+            content_id=OuterRef('rating__content__imdbid'),
+            user_profile=user_id
+        ).values('status')
+
+        # Annotate activity feed with queue and watchlist status
+        activity_feed = activity_feed.annotate(
+            in_queue=Case(
+                When(activity_type='Rating', then=Exists(
+                    queue_content_rating_exists)),
+                default=Value(False),
+                output_field=CharField()
+            ),
+            in_watchlist=Case(
+                When(activity_type='Rating', then=Subquery(
+                    watchlist_content_rating_subquery)),
+                default=Value(False),
+                output_field=CharField()
+            )
+        )
+
+        serializer = ActivityFeedItemReadSerializer(activity_feed, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
 
 class ReviewCommentViewSet(ModelViewSet):
     queryset = ReviewComment.objects.all()

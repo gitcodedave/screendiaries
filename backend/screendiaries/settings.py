@@ -87,13 +87,27 @@ WSGI_APPLICATION = 'screendiaries.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# Local Development
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'screendiaries',
+#         'USER': 'root',
+#         'PASSWORD': 'newpassword',
+#         'HOST': 'localhost',
+#         'PORT': '3306',
+#     }
+# }
+
+
+# In Docker
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'screendiaries',
         'USER': 'root',
         'PASSWORD': '',
-        'HOST': 'db',  # This matches the service name in docker-compose
+        'HOST': 'db',
         'PORT': '3306',
     }
 }

@@ -14,21 +14,13 @@ const ProfileBox = () => {
     const [firstNameState, setFirstNameState] = useState('')
     const [lastNameState, setLastNameState] = useState('')
     const [profilePictureState, setProfilePictureState] = useState('')
-    const [myQueue, setMyQueue] = useState([])
-    const [hasQueue, setHasQueue] = useState(false)
-    const [showFindContent, setShowFindContent] = useState(true)
-    const [checkboxState, setCheckboxState] = useState('movies')
+    const [myMovieQueue, setMyMovieQueue] = useState([])
+    const [mySeriesQueue, setMySeriesQueue] = useState([])
+    const [hasMovieQueue, setHasMovieQueue] = useState(false)
+    const [hasSeriesQueue, setHasSeriesQueue] = useState(false)
     const [cookies] = useCookies(['profileID', 'AccessToken']);
     const navigate = useNavigate()
 
-    const handleTypeSelectClick = (e) => {
-        if (checkboxState === 'movies') {
-            setCheckboxState('series')
-        } else {
-            setCheckboxState('movies')
-        }
-        fetchQueue()
-    }
 
     const handleContentClick = (content) => {
         const { imdbid } = content
@@ -54,27 +46,19 @@ const ProfileBox = () => {
         try {
             const myQueueResponse = await API.get(`network/myqueue/${cookies.profileID}/`)
             const data = myQueueResponse.data
-            let prunedData;
-            let upperCased;
-            if (checkboxState === 'movies') {
-                upperCased = 'Movie'
-            } else {
-                upperCased = 'Series'
+            const seriesData = data.filter(val => val.content_type === 'Series' || val.content_type === 'Episode');
+            const movieData = data.filter(val => val.content_type === 'Movie');
+            if (movieData.length > 0) {
+                setHasMovieQueue(true)
             }
-            if (upperCased === 'Series'){
-                prunedData = data.filter(val => val.content_type === upperCased || val.content_type === 'Episode');
-            } else {
-                prunedData = data.filter(val => val.content_type === upperCased);
+            if (seriesData.length > 0) {
+                setHasSeriesQueue(true)
             }
-            if (!prunedData.length) {
-                setShowFindContent(true)
-            } else {
-                setShowFindContent(false)
-            }
-            setMyQueue(prunedData)
-            setHasQueue(true)
+            setMyMovieQueue(movieData)
+            setMySeriesQueue(seriesData)
         } catch (error) {
-            setHasQueue(false)
+            setHasMovieQueue(false)
+            setHasSeriesQueue(false)
             console.log(error, 'Nothing in your queue yet!')
         }
     }
@@ -123,7 +107,7 @@ const ProfileBox = () => {
         fetchUser()
         fetchStats()
         fetchQueue()
-    }, [cookies.AccessToken, cookies.profileID, checkboxState])
+    }, [cookies.AccessToken, cookies.profileID])
 
     return (
         <div className='profilecontainer'>
@@ -133,30 +117,30 @@ const ProfileBox = () => {
                 </div>
                 <div className='profileinfocontainer'>
                     <div className='profileimageandname'>
-                        <img src={profilePictureState} alt='profile pic' style={{clipPath: 'circle()', height: '100px', width: '100px', objectFit: 'cover'}} ></img>
+                        <img src={profilePictureState} alt='profile pic' style={{ clipPath: 'circle()', height: '100px', width: '100px', objectFit: 'cover' }} ></img>
                         {firstNameState && firstNameState + ' ' + lastNameState}
                     </div>
                     <div className='profilestatscontainer'>
                         <div className='profilestats'>
-                            <div className='stat'>
+                        <NavLink style={{ textDecoration: 'none' }} to={`/myreviewfeed/${cookies.profileID}`}> <div className='stat'>
                                 <div className='statnumber'>
                                     {reviewCount}
                                 </div>
                                 <div className='statname'>
                                     reviews
                                 </div>
-                            </div>
-                            <div className='stat'>
-                                <div className='statnumber'>
+                            </div></NavLink>
+                            <NavLink style={{ textDecoration: 'none' }} to={`/myratingfeed/${cookies.profileID}`}><div className='stat'>
+                            <div className='statnumber'>
                                     {ratingCount}
                                 </div>
                                 <div className='statname'>
                                     ratings
                                 </div>
-                            </div>
-                            <NavLink style={{textDecoration: 'none'}} to={`/friendslist/${cookies.profileID}`}><div className='stat'>
+                            </div></NavLink>
+                            <NavLink style={{ textDecoration: 'none' }} to={`/friendslist/${cookies.profileID}`}><div className='stat'>
                                 <div className='statnumber'>
-                                {followCount}
+                                    {followCount}
                                 </div>
                                 <div className='statname'>
                                     following
@@ -170,32 +154,18 @@ const ProfileBox = () => {
                 </div>
                 <div className='profilebuttons'>
                     <button className='profilebutton' onClick={handleEditProfileClick}>Edit Profile</button>
-                   <NavLink to={`/mywatchlist/${cookies.profileID}/`}><button className='profilebutton'>My WatchList</button></NavLink>
-                   <NavLink to={`/friendwatchlist/`}><button className='profilebutton'>Friends WatchList</button></NavLink>
-                </div>
-                <div className='profiletoggle'>
-                    <input className="input" id="toggle" onClick={handleTypeSelectClick} type="checkbox" />
-                    <label className="label" htmlFor="toggle">
-                        <div className="left">
-                            Movies
-                        </div>
-                        <div className="switch">
-                            <span className="slider round"></span>
-                        </div>
-                        <div className="right">
-                            Series
-                        </div>
-                    </label>
+                    <NavLink to={`/mywatchlist/${cookies.profileID}/`}><button className='profilebutton'>My WatchList</button></NavLink>
+                    <NavLink to={`/friendwatchlist/`}><button className='profilebutton'>Friends WatchList</button></NavLink>
                 </div>
                 <div className='separator'></div>
                 <div className='queuelabel'>
-                    My Queue
+                    My Movie Queue
                 </div>
                 <div className='queuecontainer'>
-                    {showFindContent &&
+                    {!hasMovieQueue &&
                         <div className='emptyqueue'>
                             <div>
-                                There's nothing in your {checkboxState} Queue yet. <br></br>
+                                There's nothing in your Movie Queue yet. <br></br>
                             </div>
                             <div>
                                 <NavLink to='/search'><img height={'15px'} style={{ marginTop: '5px' }} alt='search-icon' src='/search-icon.png'></img></NavLink>
@@ -203,7 +173,7 @@ const ProfileBox = () => {
                             <Link to={'/search'}>Search</Link>
                         </div>
                     }
-                    {hasQueue && myQueue.map((contentitem, i) => (
+                    {hasMovieQueue && myMovieQueue.map((contentitem, i) => (
                         <div className='queueimageandkey' key={`queue-item-${i}`}>
                             <span key={`key-${i}`} style={{ fontWeight: 'bold', fontSize: '18px' }}>{i + 1}</span>
                             <div className='queueimagecontainer' key={`queue-image-${i}`}>
@@ -221,7 +191,40 @@ const ProfileBox = () => {
                     ))}
                 </div>
                 <div className='separator'></div>
-                <ActivityFeedBox  />
+                <div className='queuelabel'>
+                    My Series Queue
+                </div>
+                <div className='queuecontainer'>
+                    {hasSeriesQueue && mySeriesQueue.map((contentitem, i) => (
+                        <div className='queueimageandkey' key={`queue-item-${i}`}>
+                            <span key={`key-${i}`} style={{ fontWeight: 'bold', fontSize: '18px' }}>{i + 1}</span>
+                            <div className='queueimagecontainer' key={`queue-image-${i}`}>
+                                <div className='queueimageandoverlay'>
+                                    {<img src={contentitem.poster} height='100px' alt='no-poster'></img>}
+                                    <div key={`queue-overlay-${i}`} onClick={() => handleContentClick(contentitem)} className='overlay'>
+                                        <i className="fa-regular fa-hand-pointer"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <i style={{ marginTop: '5px', fontSize: '12px' }} onClick={() => handleRemoveQueueClick(contentitem)} className="fa-solid fa-xmark"></i>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    {!hasSeriesQueue &&
+                        <div className='emptyqueue'>
+                            <div>
+                                There's nothing in your Series Queue yet. <br></br>
+                            </div>
+                            <div>
+                                <NavLink to='/search'><img height={'15px'} style={{ marginTop: '5px' }} alt='search-icon' src='/search-icon.png'></img></NavLink>
+                            </div>
+                            <Link to={'/search'}>Search</Link>
+                        </div>
+                    }
+                </div>
+                <div className='separator'></div>
+                <ActivityFeedBox />
             </div>
         </div>
 

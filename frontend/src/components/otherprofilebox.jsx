@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { API } from '../api/api';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
-import { useAuth } from '../context/AuthContext';
 import { NavLink } from 'react-router-dom';
 
 const OtherProfileBox = () => {
@@ -15,23 +14,14 @@ const OtherProfileBox = () => {
     const [lastNameState, setLastNameState] = useState('')
     const [followingState, setFollowingState] = useState(false)
     const [profilePictureState, setProfilePictureState] = useState('')
-    const [myQueue, setMyQueue] = useState([])
-    const [hasQueue, setHasQueue] = useState(false)
-    const [showNoQueue, setShowNoQueue] = useState(true)
-    const [checkboxState, setCheckboxState] = useState('movies')
+    const [myMovieQueue, setMyMovieQueue] = useState([])
+    const [mySeriesQueue, setMySeriesQueue] = useState([])
+    const [hasMovieQueue, setHasMovieQueue] = useState(false)
+    const [hasSeriesQueue, setHasSeriesQueue] = useState(false)
     const [cookies] = useCookies(['profileID', 'AccessToken']);
     const navigate = useNavigate()
     const params = useParams()
     const otherUserID = params.profileID
-
-    const handleTypeSelectClick = (e) => {
-        if (checkboxState === 'movies') {
-            setCheckboxState('series')
-        } else {
-            setCheckboxState('movies')
-        }
-        fetchQueue()
-    }
 
     const handleContentClick = (content) => {
         const { imdbid } = content
@@ -83,27 +73,19 @@ const OtherProfileBox = () => {
         try {
             const myQueueResponse = await API.get(`network/myqueue/${otherUserID}/`)
             const data = myQueueResponse.data
-            let prunedData;
-            let upperCased;
-            if (checkboxState === 'movies') {
-                upperCased = 'Movie'
-            } else {
-                upperCased = 'Series'
+            const seriesData = data.filter(val => val.content_type === 'Series' || val.content_type === 'Episode');
+            const movieData = data.filter(val => val.content_type === 'Movie');
+            if (movieData.length > 0) {
+                setHasMovieQueue(true)
             }
-            if (upperCased === 'Series') {
-                prunedData = data.filter(val => val.content_type === upperCased || val.content_type === 'Episode');
-            } else {
-                prunedData = data.filter(val => val.content_type === upperCased);
+            if (seriesData.length > 0) {
+                setHasSeriesQueue(true)
             }
-            if (!prunedData.length) {
-                setShowNoQueue(true)
-            } else {
-                setShowNoQueue(false)
-            }
-            setMyQueue(prunedData)
-            setHasQueue(true)
+            setMyMovieQueue(movieData)
+            setMySeriesQueue(seriesData)
         } catch (error) {
-            setHasQueue(false)
+            setHasMovieQueue(false)
+            setHasSeriesQueue(false)
             console.log(error, 'Nothing in your queue yet!')
         }
     }
@@ -173,7 +155,7 @@ const OtherProfileBox = () => {
             fetchQueue()
             checkIfFollow()
         }
-    }, [cookies.AccessToken, cookies.profileID, checkboxState])
+    }, [cookies.AccessToken, cookies.profileID])
 
     return (
         <div className='profilecontainer'>
@@ -183,7 +165,7 @@ const OtherProfileBox = () => {
                 </div>
                 <div className='profileinfocontainer'>
                     <div className='profileimageandname'>
-                        <img src={profilePictureState} alt='profile pic' style={{clipPath: 'circle()', height: '100px', width: '100px', objectFit: 'cover'}}></img>
+                        <img src={profilePictureState} alt='profile pic' style={{ clipPath: 'circle()', height: '100px', width: '100px', objectFit: 'cover' }}></img>
                         {firstNameState && firstNameState + ' ' + lastNameState}
                     </div>
                     <div className='profilestatscontainer'>
@@ -227,37 +209,19 @@ const OtherProfileBox = () => {
                     )}
                     <NavLink to={`/mywatchlist/${otherUserID}/`}><button className='profilebutton'>WatchList</button></NavLink>
                 </div>
-                <div className='profiletoggle'>
-                    <input className="input" id="toggle" onClick={handleTypeSelectClick} type="checkbox" />
-                    <label className="label" htmlFor="toggle">
-                        <div className="left">
-                            Movies
-                        </div>
-                        <div className="switch">
-                            <span className="slider round"></span>
-                        </div>
-                        <div className="right">
-                            Series
-                        </div>
-                    </label>
-                </div>
                 <div className='separator'></div>
                 <div className='queuelabel'>
-                    {profileNameState}'s Queue
+                    {profileNameState}'s Movie Queue
                 </div>
                 <div className='queuecontainer'>
-                    {showNoQueue &&
+                    {!hasMovieQueue &&
                         <div className='emptyqueue'>
                             <div>
-                                There's nothing in {profileNameState}'s {checkboxState} Queue yet. <br></br>
+                                There's nothing in {profileNameState}'s Movie Queue yet. <br></br>
                             </div>
-                            <div>
-                                <NavLink to='/search'><img height={'15px'} style={{ marginTop: '5px' }} alt='search-icon' src='/search-icon.png'></img></NavLink>
-                            </div>
-                            <Link to={'/search'}>Search</Link>
                         </div>
                     }
-                    {hasQueue && myQueue.map((contentitem, i) => (
+                    {hasMovieQueue && myMovieQueue.map((contentitem, i) => (
                         <div className='queueimageandkey' key={`queue-item-${i}`}>
                             <span key={`key-${i}`} style={{ fontWeight: 'bold', fontSize: '18px' }}>{i + 1}</span>
                             <div className='queueimagecontainer' key={`queue-image-${i}`}>
@@ -275,6 +239,34 @@ const OtherProfileBox = () => {
                     ))}
                 </div>
                 <div className='separator'></div>
+                <div className='queuelabel'>
+                    {profileNameState}'s Series Queue
+                </div>
+                <div className='queuecontainer'>
+                    {!hasSeriesQueue &&
+                        <div className='emptyqueue'>
+                            <div>
+                                There's nothing in {profileNameState}'s Series Queue yet. <br></br>
+                            </div>
+                        </div>
+                    }
+                    {hasSeriesQueue && mySeriesQueue.map((contentitem, i) => (
+                        <div className='queueimageandkey' key={`queue-item-${i}`}>
+                            <span key={`key-${i}`} style={{ fontWeight: 'bold', fontSize: '18px' }}>{i + 1}</span>
+                            <div className='queueimagecontainer' key={`queue-image-${i}`}>
+                                <div className='queueimageandoverlay'>
+                                    {<img src={contentitem.poster} height='100px' alt='no-poster'></img>}
+                                    <div key={`queue-overlay-${i}`} onClick={() => handleContentClick(contentitem)} className='overlay'>
+                                        <i className="fa-regular fa-hand-pointer"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <i style={{ marginTop: '5px', fontSize: '12px' }} onClick={() => handleRemoveQueueClick(contentitem)} className="fa-solid fa-xmark"></i>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
 

@@ -164,9 +164,10 @@ const ActivityFeedBox = () => {
 
     useEffect(() => {
         const fetchActivityFeed = async () => {
-            let userList;
+            let userList = []
+            let followingListResponse;
             try {
-                const followingListResponse = await API.get(`network/friendslist/${cookies.profileID}/`,
+                followingListResponse = await API.get(`network/friendslist/${cookies.profileID}/`,
                     {
                         headers: {
                             Authorization: `JWT ${cookies.AccessToken}`
@@ -179,7 +180,7 @@ const ActivityFeedBox = () => {
             } catch (error) {
                 console.log(error, 'Unable to fetch follow list')
             }
-            if (userList.length) {
+            if (followingListResponse.status === 200) {
                 try {
                     userList.push(cookies.profileID)
                     const user_list = userList.join(',');
@@ -290,7 +291,7 @@ const ActivityFeedBox = () => {
                             <div className='activityfeeditemblock'>
                                 <div className='activityfeedtype'>
                                     <NavLink to={`/profile/${item.rating.user_profile.id}`}><img src={item.rating.user_profile.profile_picture} alt='profile pic' style={{ clipPath: 'circle()', height: '30px', width: '30px', objectFit: 'cover', marginRight: '10px' }} ></img></NavLink>
-                                    <span style={{ fontFamily: 'Playfair display', fontWeight: 'bold', lineHeight: '1px' }}>{item.rating.user_profile.username}</span> <span style={{ marginLeft: '10px' }}>Rated a {item.rating.content.content_type}<span style={{color: '#5E665B'}}> {` ${item.rating.rating}`} <i className="fa-solid fa-star"></i></span> </span>
+                                    <span style={{ fontFamily: 'Playfair display', fontWeight: 'bold', lineHeight: '1px' }}>{item.rating.user_profile.username}</span> <span style={{ marginLeft: '10px' }}>Rated a {item.rating.content.content_type}<span style={{ color: '#5E665B' }}> <strong>{` ${item.rating.rating}`} </strong><i className="fa-solid fa-star"></i></span> </span>
                                 </div>
                                 <div className='activityfeedcontentblock'>
                                     <div>
@@ -322,7 +323,7 @@ const ActivityFeedBox = () => {
                                         <i className="fa-solid fa-message"></i> Comment
                                     </div>
                                     <div>
-                                    <i className="fa-solid fa-share-from-square"></i> Send To Friend
+                                        <i className="fa-solid fa-share-from-square"></i> Send To Friend
                                     </div>
                                 </div>
                             </div>
