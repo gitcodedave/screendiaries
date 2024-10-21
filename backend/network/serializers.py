@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from .models import ActivityFeedItem, Content, Follow, Message, QueueItem, Rating, RatingComment, RatingReaction, RatingReply, Review, ReviewComment, ReviewReaction, ReviewReply, TopTen, UserProfile, WatchListItem
+from .models import ActivityFeedItem, Content, Follow, Message, QueueItem, Rating, RatingComment, RatingReaction, RatingReply, Review, ReviewComment, ReviewReaction, ReviewReply, TopTen, Update, UserProfile, WatchListItem
 
 
 CustomUser = get_user_model()
@@ -69,6 +69,7 @@ class ContentWithStatusSerializer(serializers.ModelSerializer):
         fields = ['imdbid', 'content_type', 'season', 'episode', 'title',
                   'year', 'director', 'actors', 'genre', 'plot', 'poster', 'runtime', 'status']
 
+
 class FriendWatchListSerializer(serializers.ModelSerializer):
     status = serializers.CharField()
     user_profile = UserProfileSerializer()
@@ -109,6 +110,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = ['id', 'review_text', 'rating', 'activity_type', 'content',
                   'user_profile', 'user_profile_id', 'contains_spoiler', 'timestamp']
 
+
 class ReviewReadSerializer(serializers.ModelSerializer):
     activity_type = serializers.CharField(read_only=True)
     user_profile = UserProfileSerializer(read_only=True)
@@ -122,6 +124,7 @@ class ReviewReadSerializer(serializers.ModelSerializer):
         fields = ['id', 'review_text', 'rating', 'activity_type', 'content',
                   'user_profile', 'user_profile_id', 'contains_spoiler', 'timestamp']
 
+
 class RatingSerializer(serializers.ModelSerializer):
     activity_type = serializers.CharField(read_only=True)
     user_profile = UserProfileSerializer(read_only=True)
@@ -133,7 +136,8 @@ class RatingSerializer(serializers.ModelSerializer):
         model = Rating
         fields = ['id', 'rating', 'activity_type', 'content',
                   'user_profile_id', 'user_profile', 'timestamp']
-        
+
+
 class RatingReadSerializer(serializers.ModelSerializer):
     activity_type = serializers.CharField(read_only=True)
     user_profile = UserProfileSerializer(read_only=True)
@@ -226,6 +230,24 @@ class ActivityFeedItemReadSerializer(serializers.ModelSerializer):
         fields = ['id', 'activity_type', 'review', 'review_comment', 'review_reply',
                   'review_reaction', 'rating', 'rating_comment',
                   'rating_reply', 'rating_reaction', 'user_profile', 'timestamp', 'in_queue', 'in_watchlist']
+
+
+class UpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Update
+        fields = ['id', 'update_type', 'user_profile',
+                  'follower', 'activity_feed_item', 'read_status', 'timestamp']
+
+
+class MyUpdatesSerializer(serializers.ModelSerializer):
+    follower = UserProfileSerializer()
+    activity_feed_item = ActivityFeedItemSerializer()
+
+    class Meta:
+        model = Update
+        fields = ['id', 'update_type', 'user_profile',
+                  'follower', 'activity_feed_item', 'read_status', 'timestamp']
 
 
 class MessageSerializer(serializers.ModelSerializer):

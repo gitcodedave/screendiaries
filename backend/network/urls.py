@@ -11,8 +11,10 @@ router.register('watchlistitems', views.WatchListItemViewSet)
 router.register('queueitems', views.QueueItemViewSet)
 router.register('topten', views.TopTenViewSet)
 router.register('reviews', views.ReviewViewSet)
+router.register('reviewreactions', views.ReviewReactionViewSet)
 router.register('ratings', views.RatingViewSet)
 router.register('activityfeeditems', views.ActivityFeedItemViewSet)
+router.register('updates', views.UpdateViewSet)
 router.register('messages', views.MessageViewSet)
 
 reviews_router = routers.NestedDefaultRouter(
@@ -54,6 +56,11 @@ urlpatterns = router.urls + reviews_router.urls + \
     [path('userratingcount/<int:user_id>/', views.UserRatingCountView.as_view(), name='user-rating-count')] + \
     [path('mywatchlist/<int:user_id>/', views.MyWatchListView.as_view(), name='my-watchlist')] + \
     [path('friendwatchlist/', views.FriendWatchListView.as_view(), name='friend-watchlist')] + \
+    [path('update/', views.UpdateIdView.as_view(), name='update')] + \
+    [path('myupdates/<int:user_id>/', views.MyUpdatesView.as_view(), name='my-updates')] + \
+    [path('myupdatesread/<int:user_id>/', views.MyUpdatesReadView.as_view(), name='my-updates-read')] + \
+    [path('myupdatecount/<int:user_id>/', views.MyUpdateCountView.as_view(), name='my-update-count')] + \
+    [path('removeupdate/<int:update_id>/', views.UpdateIdView.as_view(), name='remove-update')] + \
     [path('mywatchlistdelete/<str:content_id>/<int:user_id>/', views.MyWatchListView.as_view(), name='watchlist-item-delete')] + \
     [path('myqueue/<int:user_id>/', views.MyQueueView.as_view(), name='my-queue')] + \
     [path('myqueuedelete/<str:content_id>/<int:user_id>/', views.MyQueueView.as_view(), name='queue-item-delete')] + \

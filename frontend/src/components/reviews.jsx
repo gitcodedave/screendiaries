@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { API } from "../api/api";
-import { useParams } from "react-router-dom";
+import { useParams, NavLink } from "react-router-dom";
 import { useCookies } from "react-cookie";
 
 
@@ -59,7 +59,7 @@ const Reviews = () => {
                 
                 <div className='reviewcontainer' key={`my-review-${i}`}>
                     <div>
-                        {<img src={`http://localhost:8000${review.user_profile.profile_picture}`} height='50px' alt='no-poster'></img>}
+                        {<NavLink to={`/profile/${review.user_profile.id}`}><img src={`http://localhost:8000${review.user_profile.profile_picture}`} style={{clipPath: 'circle()', objectFit: 'cover', height: '50px', width: '50px' }} alt='profile-picture'></img></NavLink>}
                        <span className='reviewusername'> {review.user_profile.username}</span>
                        <span className='rating'> Rated this: {review.rating + '/5'} <i className="fa-solid fa-star"></i></span>
                     </div>
@@ -76,7 +76,7 @@ const Reviews = () => {
                 
                 <div className='reviewcontainer' key={`review-${i}`}>
                     <div>
-                        {<img src={`http://localhost:8000${review.user_profile.profile_picture}`} height='50px' alt='no-poster'></img>}
+                        {<NavLink to={`/profile/${review.user_profile.id}`}><img src={`http://localhost:8000${review.user_profile.profile_picture}`} style={{clipPath: 'circle()', objectFit: 'cover', height: '50px', width: '50px' }} alt='profile-picture'></img></NavLink>}
                        <span className='reviewusername'> {review.user_profile.username}</span>
                        <span className='rating'> Rated this: {review.rating + '/5'} <i className="fa-solid fa-star"></i></span>
                     </div>

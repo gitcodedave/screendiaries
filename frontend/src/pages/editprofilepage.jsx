@@ -129,7 +129,7 @@ const EditProfilePage = () => {
                             accept="image/*"
                             onChange={handleProfilePictureFileChange}
                         />
-                        <button className='loginbutton' id='upload-button' type="submit">Upload</button>
+                        <button className='loginbutton' id='upload-button' type="submit">Upload Image</button>
                     </form>
                 </div>
                 <div className='editprofiletable'>
@@ -178,7 +178,7 @@ const EditProfilePage = () => {
                                 </tr>
                             </tbody>
                         </Table>
-                        <button className='loginbutton' id='submit-button' type="submit">Submit</button>
+                        <button className='loginbutton' id='submit-button' type="submit">Submit Info</button>
                     </form>
                 </div>
 

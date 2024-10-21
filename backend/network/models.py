@@ -216,6 +216,26 @@ class ActivityFeedItem(models.Model):
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now=True)
 
+
+class Update(models.Model):
+    UPDATE_TYPE_FOLLOW = 'Follow'
+    UPDATE_TYPE_REPLY = 'Reply'
+    UPDATE_TYPE_REACTION = 'Reaction'
+    UPDATE_TYPE_CHOICES = [
+        (UPDATE_TYPE_FOLLOW, 'Follow'),
+        (UPDATE_TYPE_REPLY, 'Reply'),
+        (UPDATE_TYPE_REACTION, 'Reaction')
+    ]
+    update_type = models.CharField(choices=UPDATE_TYPE_CHOICES, max_length=8)
+    user_profile = models.ForeignKey(
+        UserProfile, related_name='updates', on_delete=models.CASCADE)
+    follower = models.ForeignKey(
+        UserProfile, related_name='originaluser', on_delete=models.CASCADE)
+    activity_feed_item = models.ForeignKey(ActivityFeedItem, on_delete=models.CASCADE, blank=True, null=True)
+    read_status = models.BooleanField(default=False)
+    timestamp = models.DateTimeField(auto_now=True)
+
+
 class Message(models.Model):
     MESSAGE_TYPE_CONTENT = 'Content Share'
     MESSAGE_TYPE_ACTIVITY = 'Activity Feed Share'

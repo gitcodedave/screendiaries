@@ -73,7 +73,7 @@ const SearchUserBox = () => {
                             <tr key={`watchlist-item-${i}`}>
                                 <td>
                                     <div className='queueimageandoverlay'>
-                                        {<img src={content.profile_picture} width='75px' alt='no-poster'></img>}
+                                        {<img src={content.profile_picture} style={{ clipPath: 'circle()', objectFit: 'cover', height: '40px', width: '40px' }} alt='no-poster'></img>}
                                         <div key={`queue-overlay-${i}`} onClick={() => handleUserClick(content)} className='overlay'>
                                             <i className="fa-regular fa-hand-pointer"></i>
                                         </div>

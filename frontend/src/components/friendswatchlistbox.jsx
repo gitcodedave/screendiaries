@@ -69,10 +69,6 @@ const FriendListBox = () => {
                         <div>
                             None of your friends have made a WatchList yet. <br></br>
                         </div>
-                        <div>
-                            <NavLink to='/search'><img height={'15px'} style={{ marginTop: '5px' }} alt='search-icon' src='/search-icon.png'></img></NavLink>
-                        </div>
-                        <Link to={'/search'}>Search</Link>
                     </div>
                 )}
                 <table className='watchlisttable'>
@@ -92,7 +88,7 @@ const FriendListBox = () => {
                                 </td>
                                 <td>
                                     <div className='queueimageandoverlay'>
-                                        {<img src={content.poster} width='75px' alt='no-poster'></img>}
+                                        {<img src={content.poster} width='50px' alt='no-poster'></img>}
                                         <div key={`queue-overlay-${i}`} onClick={() => handleContentClick(content)} className='overlay'>
                                             <i className="fa-regular fa-hand-pointer"></i>
                                         </div>

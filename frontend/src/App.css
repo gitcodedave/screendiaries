@@ -146,6 +146,30 @@ button.profilebutton {
   border-spacing: 10px;
 }
 
+.updatescontainer {
+  display: flex;
+  justify-content: center;
+}
+.updatestable td {
+  border-bottom: 0.5px solid #5E665B;
+}
+
+.updatestablerowfalse {
+  row-gap: 10px;
+  background-color: rgb(202, 207, 192);
+}
+.updatestablerowtrue {
+  row-gap: 10px;
+}
+
+.updatestabledata {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  padding-bottom: 3px;
+}
+
 
 table.searchresults {
   border-collapse: collapse;
@@ -414,7 +438,28 @@ img.contentposter {
   display: flex;
   justify-content: center;
   margin-top: 20px;
+  margin-bottom: 50px;
 }
+
+.logoutbutton button {
+  width: 140px;
+  font-size: 14px;
+  border-radius: 10px;
+  background-color: #ffffff;
+  outline: none;
+  border: 0px;
+  color: #5E665B;
+  height: 30px;
+  margin-right: 10px;
+  margin-top: 2.5px;
+  margin-bottom: 2.5px;
+}
+
+.logoutbutton button:hover {
+  background-color: #5E665B;
+  color: #ffffff;
+}
+
 
 button.queue {
   width: 140px;

@@ -15,6 +15,7 @@ import ActivityFeedPage from '../pages/activityfeedpage';
 import FriendWatchListPage from '../pages/FriendWatchListPage';
 import ReviewFeedPage from '../pages/reviewfeedpage';
 import RatingFeedPage from '../pages/ratingfeedpage';
+import UpdatePage from '../pages/updatepage';
 
 export function AppRoutes() {
     return (
@@ -28,14 +29,15 @@ export function AppRoutes() {
                     <Route exact path="/content/:imdbID" element={<ContentPage />} />
                     <Route exact path="/profile/:profileID" element={<OtherProfilePage />} />
                     <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/updates" element={<UpdatePage />} />
                     <Route path="/editprofile" element={<EditProfilePage />} />
                     <Route path="/search" element={<SearchPage />} />
                     <Route path="/activityfeed" element={<ActivityFeedPage />} />
                     <Route path="/friendwatchlist" element={<FriendWatchListPage />} />
                     <Route path="/searchuser/:search_query" element={<SearchUserPage />} />
                     <Route path="/mywatchlist/:user_id" element={<WatchListPage />} />
-                    <Route path="/myreviewfeed/:user_id" element={<ReviewFeedPage />} />
-                    <Route path="/myratingfeed/:user_id" element={<RatingFeedPage />} />
+                    <Route path="/reviewfeed/:user_id" element={<ReviewFeedPage />} />
+                    <Route path="/ratingfeed/:user_id" element={<RatingFeedPage />} />
                     <Route path="/friendslist/:user_id" element={<FriendsListPage />} />
                 </Route>
 

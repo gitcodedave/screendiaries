@@ -18,6 +18,8 @@ const ProfileBox = () => {
     const [mySeriesQueue, setMySeriesQueue] = useState([])
     const [hasMovieQueue, setHasMovieQueue] = useState(false)
     const [hasSeriesQueue, setHasSeriesQueue] = useState(false)
+    const [refreshQueue, setRefreshQueue] = useState(false);
+    const [updateQueueSignal, setUpdateQueueSignal] = useState(false);
     const [cookies] = useCookies(['profileID', 'AccessToken']);
     const navigate = useNavigate()
 
@@ -31,8 +33,10 @@ const ProfileBox = () => {
         const { imdbid } = content
         try {
             const myQueueResponse = await API.delete(`network/myqueuedelete/${imdbid}/${cookies.profileID}/`)
-            if (myQueueResponse.status === 204)
+            if (myQueueResponse.status === 204){
+                setUpdateQueueSignal(prevState => !prevState); 
                 fetchQueue()
+            }
         } catch (error) {
             console.log(error, 'Not able to delete queue item')
         }
@@ -42,6 +46,7 @@ const ProfileBox = () => {
         e.preventDefault()
         navigate('/editprofile')
     }
+
     const fetchQueue = useCallback(async () => {
         try {
             const myQueueResponse = await API.get(`network/myqueue/${cookies.profileID}/`);
@@ -108,7 +113,11 @@ const ProfileBox = () => {
         fetchUser();
         fetchStats();
         fetchQueue();
-    }, [cookies.AccessToken, cookies.profileID, fetchQueue]);
+    }, [cookies.AccessToken, cookies.profileID, fetchQueue, refreshQueue]);
+
+    const handleQueueUpdate = () => {
+        setRefreshQueue(prevState => !prevState);
+    };
 
     return (
         <div className='profilecontainer'>
@@ -123,7 +132,7 @@ const ProfileBox = () => {
                     </div>
                     <div className='profilestatscontainer'>
                         <div className='profilestats'>
-                            <NavLink style={{ textDecoration: 'none' }} to={`/myreviewfeed/${cookies.profileID}`}> <div className='stat'>
+                            <NavLink style={{ textDecoration: 'none' }} to={`/reviewfeed/${cookies.profileID}`}><div className='stat'>
                                 <div className='statnumber'>
                                     {reviewCount}
                                 </div>
@@ -131,7 +140,7 @@ const ProfileBox = () => {
                                     reviews
                                 </div>
                             </div></NavLink>
-                            <NavLink style={{ textDecoration: 'none' }} to={`/myratingfeed/${cookies.profileID}`}><div className='stat'>
+                            <NavLink style={{ textDecoration: 'none' }} to={`/ratingfeed/${cookies.profileID}`}><div className='stat'>
                                 <div className='statnumber'>
                                     {ratingCount}
                                 </div>
@@ -225,7 +234,10 @@ const ProfileBox = () => {
                     }
                 </div>
                 <div className='separator'></div>
-                <ActivityFeedBox />
+                <ActivityFeedBox 
+                onQueueUpdate={handleQueueUpdate} 
+                updateQueueSignal={updateQueueSignal} 
+                />
             </div>
         </div>
 

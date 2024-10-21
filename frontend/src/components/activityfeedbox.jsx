@@ -4,13 +4,49 @@ import { useEffect, useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 
 
-const ActivityFeedBox = () => {
+const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
     const [cookies] = useCookies(['profileID', 'AccessToken']);
     const [activityFeed, setActivityFeed] = useState([])
     const [showActivityFeed, setShowActivityFeed] = useState(false)
 
+    const updateActivityQueue = (newActivityFeed, imdbid) => {
+        newActivityFeed.map((item, i) => {
+            if (item.activity_type === 'Review') {
+                if (item.review.content.imdbid === imdbid) {
+                    item.in_queue = !item.in_queue
+                }
+            }
+            if (item.activity_type === 'Rating') {
+                if (item.rating.content.imdbid === imdbid) {
+                    item.in_queue = !item.in_queue
+                }
+            }
+            return item
+        })
+    }
 
-    const handleAddToQueueClick = async (content, i) => {
+    const handleReactClick = () => {
+        return;
+    }
+
+    const updateActivityWatchlist = (newActivityFeed, imdbid, status) => {
+        newActivityFeed.map((item, i) => {
+            if (item.activity_type === 'Review') {
+                if (item.review.content.imdbid === imdbid) {
+                    item.in_watchlist = status
+                }
+            }
+            if (item.activity_type === 'Rating') {
+                if (item.rating.content.imdbid === imdbid) {
+                    item.in_watchlist = status
+                }
+            }
+            return item
+        })
+    }
+
+
+    const handleAddToQueueClick = async (content, imdbid) => {
         try {
             let queueData;
             if (content.activity_type === 'Review') {
@@ -30,14 +66,15 @@ const ActivityFeedBox = () => {
                 }
             });
             const newActivityFeed = [...activityFeed]
-            newActivityFeed[i] = { ...newActivityFeed[i], in_queue: true }
+            updateActivityQueue(newActivityFeed, imdbid)
             setActivityFeed(newActivityFeed)
+            onQueueUpdate();
         } catch (error) {
             console.log(error, 'Not able to add to queue')
         }
     }
 
-    const handleRemoveFromQueueClick = async (content, i) => {
+    const handleRemoveFromQueueClick = async (content, imdbid) => {
         try {
             let contentID;
             if (content.activity_type === 'Review') {
@@ -47,24 +84,21 @@ const ActivityFeedBox = () => {
             }
             await API.delete(`network/myqueuedelete/${contentID}/${cookies.profileID}/`)
             const newActivityFeed = [...activityFeed]
-            newActivityFeed[i] = { ...newActivityFeed[i], in_queue: false }
+            updateActivityQueue(newActivityFeed, imdbid)
             setActivityFeed(newActivityFeed)
+            onQueueUpdate();
         } catch (error) {
             console.log(error, 'Not able to delete queue item')
         }
     }
 
-    const handleWatchedClick = async (content, i) => {
-        let contentID;
-        if (content.activity_type === 'Review') {
-            contentID = content.review.content.imdbid
-        } else {
-            contentID = content.rating.content.imdbid
-        }
+
+    const handleWatchedClick = async (content, imdbid) => {
+
         try {
             const watchListData = {
                 'user_profile': cookies.profileID,
-                'content': contentID,
+                'content': imdbid,
                 'status': 'Watched'
             }
             const addToWatchListResponse = await API.post(`/network/watchlistitems/`, watchListData, {
@@ -73,15 +107,15 @@ const ActivityFeedBox = () => {
                 }
             });
             if (addToWatchListResponse.status === 201) {
-                await handleRemoveFromQueueClick(content, i)
+                await handleRemoveFromQueueClick(content, imdbid)
                 const newActivityFeed = [...activityFeed]
-                newActivityFeed[i] = { ...newActivityFeed[i], in_watchlist: 'Watched' }
+                updateActivityWatchlist(newActivityFeed, imdbid, 'Watched')
                 setActivityFeed(newActivityFeed)
             }
         } catch (error) {
             console.log(error, 'Not able to add to watchlist, updating')
             try {
-                const checkInWatchlist = await API.get(`/network/checkinwatchlist/${contentID}/${cookies.profileID}/`, {
+                const checkInWatchlist = await API.get(`/network/checkinwatchlist/${imdbid}/${cookies.profileID}/`, {
                     headers: {
                         Authorization: `JWT ${cookies.AccessToken}`
                     }
@@ -98,8 +132,9 @@ const ActivityFeedBox = () => {
                         }
                     });
                     const newActivityFeed = [...activityFeed]
-                    newActivityFeed[i] = { ...newActivityFeed[i], in_queue: false, in_watchlist: 'Watched' }
+                    updateActivityWatchlist(newActivityFeed, imdbid, 'Watched')
                     setActivityFeed(newActivityFeed)
+                    onQueueUpdate();
                 } catch (error) {
                     console.log(error, 'Unable to patch watchlist')
                 }
@@ -113,17 +148,11 @@ const ActivityFeedBox = () => {
 
     }
 
-    const handleCurrentlyWatchingClick = async (content, i) => {
-        let contentID;
-        if (content.activity_type === 'Review') {
-            contentID = content.review.content.imdbid
-        } else {
-            contentID = content.rating.content.imdbid
-        }
+    const handleCurrentlyWatchingClick = async (content, imdbid) => {
         try {
             const watchListData = {
                 'user_profile': cookies.profileID,
-                'content': contentID,
+                'content': imdbid,
                 'status': 'Currently Watching'
             }
             const addToWatchListResponse = await API.post(`/network/watchlistitems/`, watchListData, {
@@ -132,9 +161,9 @@ const ActivityFeedBox = () => {
                 }
             });
             if (addToWatchListResponse.status === 201) {
-                await handleRemoveFromQueueClick(content, i)
+                await handleRemoveFromQueueClick(content, imdbid)
                 const newActivityFeed = [...activityFeed]
-                newActivityFeed[i] = { ...newActivityFeed[i], in_watchlist: 'Currently Watching' }
+                updateActivityWatchlist(newActivityFeed, imdbid, 'Currently Watching')
                 setActivityFeed(newActivityFeed)
             }
         } catch (error) {
@@ -143,18 +172,13 @@ const ActivityFeedBox = () => {
 
     }
 
-    const handleNotWatchedClick = async (content, i) => {
-        let contentID;
-        if (content.activity_type === 'Review') {
-            contentID = content.review.content.imdbid
-        } else {
-            contentID = content.rating.content.imdbid
-        }
+    const handleNotWatchedClick = async (content, imdbid) => {
         try {
-            await API.delete(`network/mywatchlistdelete/${contentID}/${cookies.profileID}/`)
+            await API.delete(`network/mywatchlistdelete/${imdbid}/${cookies.profileID}/`)
             const newActivityFeed = [...activityFeed]
-            newActivityFeed[i] = { ...newActivityFeed[i], in_queue: false, in_watchlist: null }
+            updateActivityWatchlist(newActivityFeed, imdbid, null)
             setActivityFeed(newActivityFeed)
+            onQueueUpdate();
         } catch (error) {
             console.log(error, 'Not able to delete watchlist item')
         }
@@ -191,7 +215,7 @@ const ActivityFeedBox = () => {
                             }
                         });
                     const data = activityFeedResponse.data;
-
+                        console.log(data)
                     data.map((item, i) => {
                         if (item.activity_type === 'Review') {
                             let { profile_picture } = item.review.user_profile
@@ -219,7 +243,9 @@ const ActivityFeedBox = () => {
 
         }
         fetchActivityFeed()
-    }, [cookies.profileID, cookies.AccessToken])
+    }, [cookies.profileID, cookies.AccessToken, updateQueueSignal])
+
+
 
     return (
         <div className='activityfeedpage'>
@@ -262,13 +288,13 @@ const ActivityFeedBox = () => {
                                         </div>
                                         <div className='activityfeedcontentallbuttons'>
                                             <div className='activityfeedcontentinfobuttons'>
-                                                {item.in_watchlist === null && !item.in_queue && <button className='activityfeedqueue' onClick={() => handleAddToQueueClick(item, i)}><i className="fas fa-plus"></i> Add to queue</button>}
-                                                {item.in_watchlist === null && item.in_queue && <button className='activityfeedadded' onClick={() => handleRemoveFromQueueClick(item, i)}>In my queue <i className="fas fa-check"></i></button>}
-                                                {item.in_watchlist === 'Watched' && <button className='activityfeedwatched' onClick={() => handleNotWatchedClick(item, i)}>Watched <i className="fas fa-check"></i></button>}
-                                                {item.in_watchlist !== 'Watched' && <button className='activityfeednotwatched' onClick={() => handleWatchedClick(item, i)}>Watched <i className="fa-solid fa-question"></i></button>}
+                                                {item.in_watchlist === null && !item.in_queue && <button className='activityfeedqueue' onClick={() => handleAddToQueueClick(item, item.review.content.imdbid)}><i className="fas fa-plus"></i> Add to queue</button>}
+                                                {item.in_watchlist === null && item.in_queue && <button className='activityfeedadded' onClick={() => handleRemoveFromQueueClick(item, item.review.content.imdbid)}>In my queue <i className="fas fa-check"></i></button>}
+                                                {item.in_watchlist === 'Watched' && <button className='activityfeedwatched' onClick={() => handleNotWatchedClick(item, item.review.content.imdbid)}>Watched <i className="fas fa-check"></i></button>}
+                                                {item.in_watchlist !== 'Watched' && <button className='activityfeednotwatched' onClick={() => handleWatchedClick(item, item.review.content.imdbid)}>Watched <i className="fa-solid fa-question"></i></button>}
                                             </div>
                                             <div className='contentinfobuttons'>
-                                                {item.in_watchlist === null && item.in_watchlist !== 'Currently Watching' && <button className='activityfeedcurrentlywatching' onClick={() => handleCurrentlyWatchingClick(item, i)}><i className="fas fa-clock"></i> Watching</button>}
+                                                {item.in_watchlist === null && item.in_watchlist !== 'Currently Watching' && <button className='activityfeedcurrentlywatching' onClick={() => handleCurrentlyWatchingClick(item, item.review.content.imdbid)}><i className="fas fa-clock"></i> Watching</button>}
                                                 {<button className='activityfeedwhoswatching'><i className="fa-solid fa-eye"></i> Who's watching?</button>}
                                             </div>
                                         </div>
@@ -276,7 +302,7 @@ const ActivityFeedBox = () => {
                                 </div>
                                 <div className='activityfeedengagement'>
                                     <div>
-                                        <i className="fa-solid fa-thumbs-up"></i> React
+                                        <i onClick={() => handleReactClick(item, item.review.content.imdbid)} className="fa-solid fa-thumbs-up"></i> React
                                     </div>
                                     <div>
                                         <i className="fa-solid fa-message"></i> Comment
@@ -303,13 +329,13 @@ const ActivityFeedBox = () => {
                                         </div>
                                         <div className='activityfeedcontentallbuttons'>
                                             <div className='activityfeedcontentinfobuttons'>
-                                                {item.in_watchlist === null && !item.in_queue && <button className='activityfeedqueue' onClick={() => handleAddToQueueClick(item, i)}><i className="fas fa-plus"></i> Add to queue</button>}
-                                                {item.in_watchlist === null && item.in_queue && <button className='activityfeedadded' onClick={() => handleRemoveFromQueueClick(item, i)}>In my queue <i className="fas fa-check"></i></button>}
-                                                {item.in_watchlist === 'Watched' && <button className='activityfeedwatched' onClick={() => handleNotWatchedClick(item, i)}>Watched <i className="fas fa-check"></i></button>}
-                                                {item.in_watchlist !== 'Watched' && <button className='activityfeednotwatched' onClick={() => handleWatchedClick(item, i)}>Watched <i className="fa-solid fa-question"></i></button>}
+                                                {item.in_watchlist === null && !item.in_queue && <button className='activityfeedqueue' onClick={() => handleAddToQueueClick(item, item.rating.content.imdbid)}><i className="fas fa-plus"></i> Add to queue</button>}
+                                                {item.in_watchlist === null && item.in_queue && <button className='activityfeedadded' onClick={() => handleRemoveFromQueueClick(item, item.rating.content.imdbid)}>In my queue <i className="fas fa-check"></i></button>}
+                                                {item.in_watchlist === 'Watched' && <button className='activityfeedwatched' onClick={() => handleNotWatchedClick(item, item.rating.content.imdbid)}>Watched <i className="fas fa-check"></i></button>}
+                                                {item.in_watchlist !== 'Watched' && <button className='activityfeednotwatched' onClick={() => handleWatchedClick(item, item.rating.content.imdbid)}>Watched <i className="fa-solid fa-question"></i></button>}
                                             </div>
                                             <div className='contentinfobuttons'>
-                                                {item.in_watchlist === null && item.in_watchlist !== 'Currently Watching' && <button className='activityfeedcurrentlywatching' onClick={() => handleCurrentlyWatchingClick(item, i)}><i className="fas fa-clock"></i> Watching</button>}
+                                                {item.in_watchlist === null && item.in_watchlist !== 'Currently Watching' && <button className='activityfeedcurrentlywatching' onClick={() => handleCurrentlyWatchingClick(item, item.rating.content.imdbid)}><i className="fas fa-clock"></i> Watching</button>}
                                                 {<button className='activityfeedwhoswatching'><i className="fa-solid fa-eye"></i> Who's watching?</button>}
                                             </div>
                                         </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { API } from '../api/api';
-import { useNavigate, Link, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import { NavLink } from 'react-router-dom';
 
@@ -45,7 +45,25 @@ const OtherProfileBox = () => {
             try {
                 const unFollowResponse = await API.delete(`network/unfollow/${cookies.profileID}/${otherUserID}/`)
                 if (unFollowResponse.status === 204) {
-                    setFollowingState(false)
+                    try{
+                        const updateResponse = await API.get(`network/update/?user_id=${otherUserID}&follower_profile=${cookies.profileID}&update_type=Follow&activity_feed_item=${null}`, {
+                            headers: {
+                                Authorization: `JWT ${cookies.AccessToken}`
+                            }
+                        });
+                        const id = updateResponse.data[0]
+                        const removeUpdateResponse = await API.delete(`/network/removeupdate/${id}/`, {
+                            headers: {
+                                Authorization: `JWT ${cookies.AccessToken}`
+                            }
+                        });
+                        if(removeUpdateResponse.status === 204){
+                            setFollowingState(false)
+                        }
+                    } catch(error){
+                        console.log(error, 'Unable to remove update')
+                    }
+
                 }
             } catch (error) {
                 console.log(error, 'Not able to unfollow')
@@ -62,7 +80,25 @@ const OtherProfileBox = () => {
                     }
                 });
                 if (followResponse.status === 201) {
-                    setFollowingState(true)
+                    try{
+
+                        const updateData = {
+                            "update_type": 'Follow',
+                            "user_profile": otherUserID,
+                            "follower": cookies.profileID,
+                            "activity_feed_item": null
+                        }
+                        const addUpdateResponse = await API.post(`/network/updates/`, updateData, {
+                            headers: {
+                                Authorization: `JWT ${cookies.AccessToken}`
+                            }
+                        });
+                        if(addUpdateResponse.status === 201){
+                            setFollowingState(true)
+                        }
+                    } catch (error){
+                        console.log(error, 'Unable to add a new update')
+                    }
                 }
             } catch (error) {
                 console.log(error, 'Not able to follow')
@@ -170,22 +206,22 @@ const OtherProfileBox = () => {
                     </div>
                     <div className='profilestatscontainer'>
                         <div className='profilestats'>
-                            <div className='stat'>
+                        <NavLink style={{ textDecoration: 'none' }} to={`/reviewfeed/${otherUserID}`}><div className='stat'>
                                 <div className='statnumber'>
                                     {reviewCount}
                                 </div>
                                 <div className='statname'>
                                     reviews
                                 </div>
-                            </div>
-                            <div className='stat'>
+                            </div></NavLink>
+                            <NavLink style={{ textDecoration: 'none' }} to={`/ratingfeed/${otherUserID}`}><div className='stat'>
                                 <div className='statnumber'>
                                     {ratingCount}
                                 </div>
                                 <div className='statname'>
                                     ratings
                                 </div>
-                            </div>
+                            </div></NavLink>
                             <NavLink style={{ textDecoration: 'none' }} to={`/friendslist/${otherUserID}`}><div className='stat'>
                                 <div className='statnumber'>
                                     {followCount}

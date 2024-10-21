@@ -167,7 +167,7 @@ const ReviewFeedBox = () => {
     useEffect(() => {
         const fetchReviewFeed = async () => {
             try {
-                const activityFeedResponse = await API.get(`network/myreviewfeed/${cookies.profileID}`,
+                const activityFeedResponse = await API.get(`network/myreviewfeed/${user_id}`,
                     {
                         headers: {
                             Authorization: `JWT ${cookies.AccessToken}`
@@ -200,14 +200,14 @@ const ReviewFeedBox = () => {
 
         }
         fetchReviewFeed()
-    }, [cookies.profileID, cookies.AccessToken])
+    }, [cookies.profileID, cookies.AccessToken, user_id])
 
     return (
         <div>
             <Link style={{ marginLeft: '10px' }} to={`/profile/${user_id}/`}><i style={{ fontSize: '30px', marginTop: '10px' }} className="fa-solid fa-angle-left"></i></Link>
             <div className='activityfeedpage'>
                 <div className='activityfeedcontainer'>
-                    {!activityFeed.length && (
+                    {!activityFeed.length && user_id === cookies.profileID && (
                         <div className='emptyqueue'>
                             <div>
                                 You haven't reviewed anything yet. <br></br>
@@ -217,6 +217,13 @@ const ReviewFeedBox = () => {
                                 <NavLink to='/search'><img height={'15px'} style={{ marginTop: '5px' }} alt='search-icon' src='/search-icon.png'></img></NavLink>
                             </div>
                             <Link to={'/search'}>Search</Link>
+                        </div>
+                    )}
+                    {!activityFeed.length && user_id !== cookies.profileID && (
+                        <div className='emptyqueue'>
+                            <div>
+                                This user hasn't reviewed anything yet. <br></br>
+                            </div>
                         </div>
                     )}
                     {showActivityFeed && activityFeed.map((item, i) => (

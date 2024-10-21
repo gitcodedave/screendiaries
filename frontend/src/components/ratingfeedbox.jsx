@@ -167,7 +167,7 @@ const RatingFeedBox = () => {
     useEffect(() => {
         const fetchRatingFeed = async () => {
             try {
-                const activityFeedResponse = await API.get(`network/myratingfeed/${cookies.profileID}`,
+                const activityFeedResponse = await API.get(`network/myratingfeed/${user_id}`,
                     {
                         headers: {
                             Authorization: `JWT ${cookies.AccessToken}`
@@ -200,14 +200,14 @@ const RatingFeedBox = () => {
 
         }
         fetchRatingFeed()
-    }, [cookies.profileID, cookies.AccessToken])
+    }, [cookies.profileID, cookies.AccessToken, user_id])
 
     return (
         <div>
             <Link style={{ marginLeft: '10px' }} to={`/profile/${user_id}/`}><i style={{ fontSize: '30px', marginTop: '10px' }} className="fa-solid fa-angle-left"></i></Link>
             <div className='activityfeedpage'>
                 <div className='activityfeedcontainer'>
-                    {!activityFeed.length && (
+                    {!activityFeed.length && user_id === cookies.profileID && (
                         <div className='emptyqueue'>
                             <div>
                                 You haven't rated anything yet. <br></br>
@@ -217,6 +217,13 @@ const RatingFeedBox = () => {
                                 <NavLink to='/search'><img height={'15px'} style={{ marginTop: '5px' }} alt='search-icon' src='/search-icon.png'></img></NavLink>
                             </div>
                             <Link to={'/search'}>Search</Link>
+                        </div>
+                    )}
+                    {!activityFeed.length && user_id !== cookies.profileID && (
+                        <div className='emptyqueue'>
+                            <div>
+                                This user hasn't rated anything yet. <br></br>
+                            </div>
                         </div>
                     )}
                     {showActivityFeed && activityFeed.map((item, i) => (

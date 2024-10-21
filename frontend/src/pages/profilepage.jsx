@@ -11,7 +11,7 @@ const ProfilePage = () => {
             <ProfileNavbar />
             <ProfileBox />
             <div className='logoutbutton'>
-            <button onClick={logout}>Logout</button>
+            <button className='logoutButton' onClick={logout}>Logout</button>
             </div>
         </div>
     );

@@ -1,4 +1,5 @@
 from django.db.models import Case, When, Value, CharField, Subquery, OuterRef, Exists, IntegerField
+from django.db import transaction
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -6,10 +7,9 @@ from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, filters
 from rest_framework.parsers import MultiPartParser, FormParser
-from network.models import ActivityFeedItem, Content, Follow, Message, QueueItem, Rating, RatingComment, RatingReaction, RatingReply, Review, ReviewComment, ReviewReaction, ReviewReply, TopTen, UserProfile, WatchListItem
-from network.serializers import ActivityFeedItemReadSerializer, ActivityFeedItemSerializer, ContentSerializer, ContentWithStatusSerializer, FollowSerializer, FollowWithUserProfileSerializer, FriendWatchListSerializer, MessageSerializer, QueueItemSerializer, RatingCommentSerializer, RatingReactionSerializer, RatingReplySerializer, RatingSerializer, ReviewCommentSerializer, ReviewReactionSerializer, ReviewReplySerializer, ReviewSerializer, TopTenSerializer, UserProfileSerializer, WatchListItemSerializer
+from network.models import ActivityFeedItem, Content, Follow, Message, QueueItem, Rating, RatingComment, RatingReaction, RatingReply, Review, ReviewComment, ReviewReaction, ReviewReply, TopTen, Update, UserProfile, WatchListItem
+from network.serializers import ActivityFeedItemReadSerializer, ActivityFeedItemSerializer, ContentSerializer, ContentWithStatusSerializer, FollowSerializer, FollowWithUserProfileSerializer, FriendWatchListSerializer, MessageSerializer, MyUpdatesSerializer, QueueItemSerializer, RatingCommentSerializer, RatingReactionSerializer, RatingReplySerializer, RatingSerializer, ReviewCommentSerializer, ReviewReactionSerializer, ReviewReplySerializer, ReviewSerializer, TopTenSerializer, UpdateSerializer, UserProfileSerializer, WatchListItemSerializer
 import requests
-import os
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -22,7 +22,7 @@ class UserProfileViewSet(ModelViewSet):
     parser_classes = (MultiPartParser, FormParser)
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     search_fields = ['user__username', 'user__first_name',
-                     'user__last_name']  # Fields to search
+                     'user__last_name'] 
 
     @action(detail=False, methods=['GET'])
     def me(self, request):
@@ -144,22 +144,19 @@ class FriendWatchListView(APIView):
         else:
             user_list = []
 
-        # Fetch watchlist items for the user list, ordered by timestamp
         watchlist_items = WatchListItem.objects.filter(
             user_profile_id__in=user_list
         ).order_by('-timestamp')
 
-        # Create a dictionary to map content_id to a list of (user_id, status) tuples
         status_dict = {}
         for item in watchlist_items:
             if item.content_id not in status_dict:
                 status_dict[item.content_id] = []
-            status_dict[item.content_id].append((item.user_profile_id, item.status))
+            status_dict[item.content_id].append(
+                (item.user_profile_id, item.status))
 
-        # Get the ordered list of content_ids
         content_ids_ordered = [item.content_id for item in watchlist_items]
 
-        # Prepare cases for status and user_profile annotations
         case_status = Case(
             *[
                 When(pk=content_id, then=Value(status))
@@ -178,28 +175,25 @@ class FriendWatchListView(APIView):
             output_field=IntegerField(),
         )
 
-        # Annotate the Content objects with status and user_profile
         content_objects = Content.objects.filter(
             pk__in=content_ids_ordered
         ).annotate(status=case_status, user_profile_id=case_user_profile)
 
-        # Fetch UserProfile objects based on the annotated user_profile_id
-        user_profile_dict = {profile.pk: profile for profile in UserProfile.objects.filter(pk__in=user_list)}
+        user_profile_dict = {
+            profile.pk: profile for profile in UserProfile.objects.filter(pk__in=user_list)}
 
-        # Attach UserProfile objects to content_objects
         for content in content_objects:
-            content.user_profile = user_profile_dict.get(content.user_profile_id)
+            content.user_profile = user_profile_dict.get(
+                content.user_profile_id)
 
-        # Create a dictionary to map content_id to content object
         content_dict = {content.pk: content for content in content_objects}
 
-        # Get the ordered content objects
-        ordered_content = [content_dict[content_id] for content_id in content_ids_ordered]
+        ordered_content = [content_dict[content_id]
+                           for content_id in content_ids_ordered]
 
-        # Serialize the ordered content objects
         serializer = FriendWatchListSerializer(ordered_content, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
 
 class MyWatchListView(APIView):
     serializer_class = WatchListItemSerializer
@@ -404,10 +398,68 @@ class MyRatingView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class MyUpdatesView(APIView):
+    queryset = Update.objects.all()
+    serializer_class = UpdateSerializer
+
+    def get(self, request, user_id):
+        updates = Update.objects.filter(user_profile_id=user_id).order_by('-timestamp')
+
+        serializer = MyUpdatesSerializer(updates, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class MyUpdatesReadView(APIView):
+    queryset = Update.objects.all()
+    serializer_class = UpdateSerializer
+
+    def get(self, request, user_id):
+        updates = Update.objects.filter(user_profile_id=user_id)
+        
+        with transaction.atomic():
+            updates.update(read_status=True)
+
+        serializer = MyUpdatesSerializer(updates, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class MyUpdateCountView(APIView):
+    def get(self, request, user_id):
+        update_count = Update.objects.filter(user_profile_id=user_id, read_status=False).count()
+        return Response(update_count, status=status.HTTP_200_OK)
+
 
 class ActivityFeedItemViewSet(ModelViewSet):
     queryset = ActivityFeedItem.objects.all()
     serializer_class = ActivityFeedItemSerializer
+
+
+class UpdateViewSet(ModelViewSet):
+    queryset = Update.objects.all()
+    serializer_class = UpdateSerializer
+
+
+class UpdateIdView(APIView):
+    def get(self, request):
+        user_id = int(request.GET.get('user_id'))
+        follower_profile = int(request.GET.get('follower_profile'))
+        update_type = request.GET.get('update_type')
+        activity_feed_item = request.GET.get('activity_feed_item')
+        if activity_feed_item == 'null':
+            update = Update.objects.filter(user_profile_id=user_id, follower_id=follower_profile,
+                                           update_type=update_type, activity_feed_item_id__isnull=True).values_list('id', flat=True)
+        else:
+            activity_feed_item = int(activity_feed_item)
+            update = Update.objects.filter(user_id_id=user_id, follower_profile_id=follower_profile,
+                                           update_type=update_type, activity_feed_item_id=activity_feed_item).values_list('id', flat=True)
+            
+        return Response(update, status=status.HTTP_200_OK)
+
+    def delete(self, request, update_id):
+        instance = Update.objects.filter(
+            pk=update_id)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class MyActivityFeedView(APIView):
@@ -426,36 +478,30 @@ class MyActivityFeedView(APIView):
         else:
             user_list = []
 
-        # Get activity feed for the user list, ordered by timestamp
         activity_feed = ActivityFeedItem.objects.filter(
             user_profile__in=user_list
         ).order_by('-timestamp')
 
-        # Subquery for QueueItem to determine if content is in queue
         queue_content_review_exists = QueueItem.objects.filter(
             content_id=OuterRef('review__content__imdbid'),
             user_profile=user_id
         )
 
-        # Subquery for QueueItem to determine if content is in queue
         queue_content_rating_exists = QueueItem.objects.filter(
             content_id=OuterRef('rating__content__imdbid'),
             user_profile=user_id
         )
 
-        # Subquery for WatchListItem to get the status
         watchlist_content_review_subquery = WatchListItem.objects.filter(
             content_id=OuterRef('review__content__imdbid'),
             user_profile=user_id
         ).values('status')
 
-        # Subquery for WatchListItem to get the status
         watchlist_content_rating_subquery = WatchListItem.objects.filter(
             content_id=OuterRef('rating__content__imdbid'),
             user_profile=user_id
         ).values('status')
 
-        # Annotate activity feed with queue and watchlist status
         activity_feed = activity_feed.annotate(
             in_queue=Case(
                 When(activity_type='Review', then=Exists(
@@ -477,30 +523,27 @@ class MyActivityFeedView(APIView):
 
         serializer = ActivityFeedItemReadSerializer(activity_feed, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class MyReviewFeedView(APIView):
     serializer_class = ActivityFeedItemSerializer
 
     def get(self, request, user_id):
 
-        # Get activity feed for the user list, ordered by timestamp
         activity_feed = ActivityFeedItem.objects.filter(
             user_profile=user_id, activity_type='Review'
         ).order_by('-timestamp')
 
-        # Subquery for QueueItem to determine if content is in queue
         queue_content_review_exists = QueueItem.objects.filter(
             content_id=OuterRef('review__content__imdbid'),
             user_profile=user_id
         )
 
-        # Subquery for WatchListItem to get the status
         watchlist_content_review_subquery = WatchListItem.objects.filter(
             content_id=OuterRef('review__content__imdbid'),
             user_profile=user_id
         ).values('status')
 
-        # Annotate activity feed with queue and watchlist status
         activity_feed = activity_feed.annotate(
             in_queue=Case(
                 When(activity_type='Review', then=Exists(
@@ -518,30 +561,27 @@ class MyReviewFeedView(APIView):
 
         serializer = ActivityFeedItemReadSerializer(activity_feed, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
+
 class MyRatingFeedView(APIView):
     serializer_class = ActivityFeedItemSerializer
 
     def get(self, request, user_id):
 
-        # Get activity feed for the user list, ordered by timestamp
         activity_feed = ActivityFeedItem.objects.filter(
             user_profile=user_id
         ).order_by('-timestamp')
 
-        # Subquery for QueueItem to determine if content is in queue
         queue_content_rating_exists = QueueItem.objects.filter(
             content_id=OuterRef('rating__content__imdbid'),
             user_profile=user_id
         )
 
-        # Subquery for WatchListItem to get the status
         watchlist_content_rating_subquery = WatchListItem.objects.filter(
             content_id=OuterRef('rating__content__imdbid'),
             user_profile=user_id
         ).values('status')
 
-        # Annotate activity feed with queue and watchlist status
         activity_feed = activity_feed.annotate(
             in_queue=Case(
                 When(activity_type='Rating', then=Exists(
@@ -559,8 +599,6 @@ class MyRatingFeedView(APIView):
 
         serializer = ActivityFeedItemReadSerializer(activity_feed, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 
 
 class ReviewCommentViewSet(ModelViewSet):
