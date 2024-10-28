@@ -460,6 +460,9 @@ img.contentposter {
   color: #ffffff;
 }
 
+.clickableimage:hover {
+  cursor: pointer;
+}
 
 button.queue {
   width: 140px;

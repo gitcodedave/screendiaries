@@ -74,6 +74,7 @@ class WatchListItem(models.Model):
                 fields=['content', 'user_profile'], name='unique_watchlist_item')
         ]
 
+
 class QueueItem(models.Model):
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     content = models.ForeignKey(Content, on_delete=models.CASCADE)
@@ -88,7 +89,32 @@ class TopTen(models.Model):
     )
 
 
+class ActivityFeedItem(models.Model):
+    activity_type = models.CharField(max_length=20)
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now=True)
+
+
+class Rating(models.Model):
+    activity_feed = models.ForeignKey(
+        ActivityFeedItem, on_delete=models.CASCADE, related_name='ratings')
+    rating = models.PositiveSmallIntegerField(
+        validators=[MaxValueValidator(5), MinValueValidator(1)]
+    )
+    content = models.ForeignKey(Content, on_delete=models.CASCADE)
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['content', 'user_profile'], name='unique_rating')
+        ]
+
+
 class Review(models.Model):
+    activity_feed = models.ForeignKey(
+        ActivityFeedItem, on_delete=models.CASCADE, related_name='reviews')
     review_text = models.TextField()
     rating = models.PositiveSmallIntegerField(
         validators=[MaxValueValidator(5), MinValueValidator(1)],
@@ -107,114 +133,52 @@ class Review(models.Model):
         ]
 
 
-class Rating(models.Model):
-    rating = models.PositiveSmallIntegerField(
-        validators=[MaxValueValidator(5), MinValueValidator(1)]
-    )
-    content = models.ForeignKey(Content, on_delete=models.CASCADE)
+class Comment(models.Model):
+    comment_text = models.TextField()
+    parent = models.ForeignKey(
+        'self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)
+    activity_feed = models.ForeignKey(
+        ActivityFeedItem, null=True, blank=True, on_delete=models.CASCADE, related_name='comments')
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    likes = models.PositiveIntegerField(default=0)
     timestamp = models.DateTimeField(auto_now=True)
+
+
+class Reaction(models.Model):
+    REACTION_LOVE = 'Love'
+    REACTION_THUMBS_UP = 'Thumbs Up'
+    REACTION_THUMBS_DOWN = 'Thumbs Down'
+    REACTION_LAUGH = 'Laughing'
+    REACTION_CRY = 'Crying'
+    REACTION_SURPRISED = 'Surprised'
+    REACTION_SICK = 'Sick'
+    REACTION_ANGRY = 'Angry'
+    REACTION_CHOICES = [
+        (REACTION_LOVE, 'Love'),
+        (REACTION_THUMBS_UP, 'Thumbs Up'),
+        (REACTION_THUMBS_DOWN, 'Thumbs Down'),
+        (REACTION_LAUGH, 'Laughing'),
+        (REACTION_CRY, 'Crying'),
+        (REACTION_SURPRISED, 'Surprised'),
+        (REACTION_SICK, 'Sick'),
+        (REACTION_ANGRY, 'Angry'),
+    ]
+    activity_feed = models.ForeignKey(
+        ActivityFeedItem, on_delete=models.CASCADE, related_name='reactions')
+    comment = models.ForeignKey(
+        Comment, null=True, blank=True, related_name='reactions', on_delete=models.CASCADE)
+    review = models.ForeignKey(
+        Review, null=True, blank=True, related_name='reactions', on_delete=models.CASCADE)
+    rating = models.ForeignKey(
+        Rating, null=True, blank=True, related_name='ratings', on_delete=models.CASCADE)
+    reaction = models.CharField(choices=REACTION_CHOICES, max_length=11)
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['content', 'user_profile'], name='unique_rating')
+                fields=['activity_feed', 'user_profile'], name='unique_reaction')
         ]
-
-
-
-
-class ReviewComment(models.Model):
-    comment_text = models.TextField()
-    review = models.ForeignKey(Review, on_delete=models.CASCADE)
-    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    likes = models.PositiveIntegerField(default=0)
-    timestamp = models.DateTimeField(auto_now=True)
-
-
-class ReviewReply(models.Model):
-    reply_text = models.TextField()
-    review_comment = models.ForeignKey(ReviewComment, on_delete=models.CASCADE)
-    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    likes = models.PositiveIntegerField(default=0)
-    timestamp = models.DateTimeField(auto_now=True)
-
-
-class ReviewReaction(models.Model):
-    REACTION_LOVE = 'Love'
-    REACTION_THUMBS_UP = 'Thumbs Up'
-    REACTION_THUMBS_DOWN = 'Thumbs Down'
-    REACTION_LAUGH = 'Laughing'
-    REACTION_CRY = 'Crying'
-    REACTION_SURPRISED = 'Surprised'
-    REACTION_SICK = 'Sick'
-    REACTION_ANGRY = 'Angry'
-    REACTION_CHOICES = [
-        (REACTION_LOVE, 'Love'),
-        (REACTION_THUMBS_UP, 'Thumbs Up'),
-        (REACTION_THUMBS_DOWN, 'Thumbs Down'),
-        (REACTION_LAUGH, 'Laughing'),
-        (REACTION_CRY, 'Crying'),
-        (REACTION_SURPRISED, 'Surprised'),
-        (REACTION_SICK, 'Sick'),
-        (REACTION_ANGRY, 'Angry'),
-    ]
-    reaction = models.CharField(choices=REACTION_CHOICES, max_length=11)
-    review = models.ForeignKey(Review, on_delete=models.CASCADE)
-    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-
-
-class RatingComment(models.Model):
-    comment_text = models.TextField()
-    rating = models.ForeignKey(Rating, on_delete=models.CASCADE)
-    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    likes = models.PositiveIntegerField(default=0)
-    timestamp = models.DateTimeField(auto_now=True)
-
-
-class RatingReply(models.Model):
-    reply_text = models.TextField()
-    rating_comment = models.ForeignKey(RatingComment, on_delete=models.CASCADE)
-    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    likes = models.PositiveIntegerField(default=0)
-    timestamp = models.DateTimeField(auto_now=True)
-
-
-class RatingReaction(models.Model):
-    REACTION_LOVE = 'Love'
-    REACTION_THUMBS_UP = 'Thumbs Up'
-    REACTION_THUMBS_DOWN = 'Thumbs Down'
-    REACTION_LAUGH = 'Laughing'
-    REACTION_CRY = 'Crying'
-    REACTION_SURPRISED = 'Surprised'
-    REACTION_SICK = 'Sick'
-    REACTION_ANGRY = 'Angry'
-    REACTION_CHOICES = [
-        (REACTION_LOVE, 'Love'),
-        (REACTION_THUMBS_UP, 'Thumbs Up'),
-        (REACTION_THUMBS_DOWN, 'Thumbs Down'),
-        (REACTION_LAUGH, 'Laughing'),
-        (REACTION_CRY, 'Crying'),
-        (REACTION_SURPRISED, 'Surprised'),
-        (REACTION_SICK, 'Sick'),
-        (REACTION_ANGRY, 'Angry'),
-    ]
-    reaction = models.CharField(choices=REACTION_CHOICES, max_length=11)
-    rating = models.ForeignKey(Rating, on_delete=models.CASCADE)
-    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-
-class ActivityFeedItem(models.Model):
-    review = models.ForeignKey(Review, on_delete=models.CASCADE, null=True, blank=True)
-    review_comment = models.ForeignKey(ReviewComment, on_delete=models.CASCADE, null=True, blank=True)
-    review_reply = models.ForeignKey(ReviewReply, on_delete=models.CASCADE, null=True, blank=True)
-    review_reaction = models.ForeignKey(ReviewReaction, on_delete=models.CASCADE, null=True, blank=True)
-    rating = models.ForeignKey(Rating, on_delete=models.CASCADE, null=True, blank=True)
-    rating_comment = models.ForeignKey(RatingComment, on_delete=models.CASCADE, null=True, blank=True)
-    rating_reply = models.ForeignKey(RatingReply, on_delete=models.CASCADE, null=True, blank=True)
-    rating_reaction = models.ForeignKey(RatingReaction, on_delete=models.CASCADE, null=True, blank=True)
-    activity_type = models.CharField(max_length=20)
-    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    timestamp = models.DateTimeField(auto_now=True)
 
 
 class Update(models.Model):
@@ -231,7 +195,8 @@ class Update(models.Model):
         UserProfile, related_name='updates', on_delete=models.CASCADE)
     follower = models.ForeignKey(
         UserProfile, related_name='originaluser', on_delete=models.CASCADE)
-    activity_feed_item = models.ForeignKey(ActivityFeedItem, on_delete=models.CASCADE, blank=True, null=True)
+    activity_feed_item = models.ForeignKey(
+        ActivityFeedItem, on_delete=models.CASCADE, blank=True, null=True)
     read_status = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now=True)
 

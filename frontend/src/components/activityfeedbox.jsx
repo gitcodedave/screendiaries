@@ -25,7 +25,67 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
         })
     }
 
-    const handleReactClick = () => {
+    const updateActivityReactions = (newActivityFeed, i, newReaction) => {
+        const updatedFeed = newActivityFeed[i].reactions.push(newReaction)
+        return updatedFeed
+    }
+
+
+    const handleReactClick = async (content, i) => {
+        const reactionData = {
+            "reaction": 'Thumbs Up',
+            "comment": null,
+            "activity_feed": content.id,
+            "review": null,
+            "rating": null,
+            "user_profile": cookies.profileID
+        }
+        try {
+            const addReactionResponse = await API.post(`/network/reactions/`, reactionData, {
+                headers: {
+                    Authorization: `JWT ${cookies.AccessToken}`
+                }
+            });
+            if (addReactionResponse.status === 201) {
+                const newActivityFeed = [...activityFeed]
+                updateActivityReactions(newActivityFeed, i, addReactionResponse.data)
+                setActivityFeed(newActivityFeed)
+            }
+
+            try {
+                let otherUserID;
+                if (content.activity_type === 'Review') {
+                    otherUserID = content.review.user_profile.id
+                }
+                if (content.activity_type === 'Rating') {
+                    otherUserID = content.rating.user_profile.id
+                }
+                const updateData = {
+                    "update_type": 'Reaction',
+                    "user_profile": otherUserID,
+                    "follower": cookies.profileID,
+                    "activity_feed_item": content.id
+                }
+                const addUpdateResponse = await API.post(`/network/updates/`, updateData, {
+                    headers: {
+                        Authorization: `JWT ${cookies.AccessToken}`
+                    }
+                });
+                if (addUpdateResponse.status === 201) {
+                    return;
+                }
+            } catch (error) {
+                console.log(error, 'Unable to create an update for reaction')
+            }
+
+        } catch (error) {
+            if (error.status === 400) {
+                console.log("You've already liked this!")
+            } else {
+                console.log(error, 'Unable to add reaction')
+            }
+        }
+
         return;
     }
 
@@ -169,7 +229,6 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
         } catch (error) {
             console.log(error, 'Not able to add to watchlist')
         }
-
     }
 
     const handleNotWatchedClick = async (content, imdbid) => {
@@ -215,7 +274,6 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
                             }
                         });
                     const data = activityFeedResponse.data;
-                        console.log(data)
                     data.map((item, i) => {
                         if (item.activity_type === 'Review') {
                             let { profile_picture } = item.review.user_profile
@@ -302,7 +360,7 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
                                 </div>
                                 <div className='activityfeedengagement'>
                                     <div>
-                                        <i onClick={() => handleReactClick(item, item.review.content.imdbid)} className="fa-solid fa-thumbs-up"></i> React
+                                    <NavLink to={`/reactionlist/${item.id}`} style={{textDecoration: 'none'}}>{item.reactions.length}</NavLink> <span className='clickableimage'><i onClick={() => handleReactClick(item, i)} className="fa-solid fa-thumbs-up"></i></span> Like
                                     </div>
                                     <div>
                                         <i className="fa-solid fa-message"></i> Comment
@@ -343,7 +401,7 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
                                 </div>
                                 <div className='activityfeedengagement'>
                                     <div>
-                                        <i className="fa-solid fa-thumbs-up"></i> React
+                                    <NavLink to={`/reactionlist/${item.id}`} style={{textDecoration: 'none'}}>{item.reactions.length}</NavLink> <span className='clickableimage'><i onClick={() => handleReactClick(item, i)} className="fa-solid fa-thumbs-up"></i></span> Like
                                     </div>
                                     <div>
                                         <i className="fa-solid fa-message"></i> Comment

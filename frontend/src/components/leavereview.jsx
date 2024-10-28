@@ -49,25 +49,108 @@ const LeaveReview = () => {
             return;
         }
         if (reviewState !== '') {
-            const reviewData = {
-                "review_text": reviewState,
-                "rating": ratingState,
-                "content": imdbID,
-                "user_profile_id": cookies.profileID,
-                "contains_spoiler": containsSpoiler
-            }
             try {
-                uploadReview = await API.post('/network/reviews/', reviewData,
+                const activityFeedData = {
+                    "user_profile": cookies.profileID,
+                    "activity_type": 'Review'
+                }
+                createActivityReview = await API.post('/network/activityfeeditems/', activityFeedData,
                     {
                         headers: {
                             Authorization: `JWT ${cookies.AccessToken}`
                         }
                     }
                 )
+            } catch (error) {
+                console.log(error, 'Unable to add to activity feed')
+            }
+
+            if (createActivityReview.status === 201) {
+                try {
+                    let activityFeedData = createActivityReview.data
+                    let activityID = activityFeedData.id
+
+                    const reviewData = {
+                        "review_text": reviewState,
+                        "rating": ratingState,
+                        "content": imdbID,
+                        "user_profile_id": cookies.profileID,
+                        "contains_spoiler": containsSpoiler,
+                        "activity_feed": activityID
+                    }
+                    uploadReview = await API.post('/network/reviews/', reviewData,
+                        {
+                            headers: {
+                                Authorization: `JWT ${cookies.AccessToken}`
+                            }
+                        }
+                    )
+                    const ratingData = {
+                        "rating": ratingState,
+                        "content": imdbID,
+                        "user_profile_id": cookies.profileID,
+                        "activity_feed": activityID
+                    }
+                    try {
+                        uploadRating = await API.post('/network/ratings/', ratingData,
+                            {
+                                headers: {
+                                    Authorization: `JWT ${cookies.AccessToken}`
+                                }
+                            }
+                        )
+                    } catch (error) {
+                        console.log(error, 'Rating exists already, updating')
+                        if (error.status === 400) {
+                            uploadRating = await API.patch(`/network/myrating/${imdbID}/${cookies.profileID}/`, ratingData,
+                                {
+                                    headers: {
+                                        Authorization: `JWT ${cookies.AccessToken}`
+                                    }
+                                }
+                            )
+                        }
+                        if (uploadRating.status === 200) {
+                            window.location.reload();
+                        }
+                    }
+                } catch (error) {
+                    setErrorState("(You've already reviewed this)")
+                    return;
+                }
+            }
+            if (uploadReview.status === 201) {
+                window.location.reload();
+            }
+            return;
+
+        } else {
+            let activityFeedData;
+            try {
+                activityFeedData = {
+                    "user_profile": cookies.profileID,
+                    "activity_type": 'Rating'
+                }
+                createActivityRating = await API.post('/network/activityfeeditems/', activityFeedData,
+                    {
+                        headers: {
+                            Authorization: `JWT ${cookies.AccessToken}`
+                        }
+                    }
+                )
+            } catch (error) {
+                console.log(error, 'Unable to add to activity feed')
+            }
+
+            if (createActivityRating.status === 201) {
+                let createActivityRatingData = createActivityRating.data
+                let activityID = createActivityRatingData.id
+
                 const ratingData = {
                     "rating": ratingState,
                     "content": imdbID,
                     "user_profile_id": cookies.profileID,
+                    "activity_feed": activityID
                 }
                 try {
                     uploadRating = await API.post('/network/ratings/', ratingData,
@@ -77,6 +160,8 @@ const LeaveReview = () => {
                             }
                         }
                     )
+
+                    console.log(uploadRating)
                 } catch (error) {
                     console.log(error, 'Rating exists already, updating')
                     if (error.status === 400) {
@@ -92,83 +177,6 @@ const LeaveReview = () => {
                         window.location.reload();
                     }
                 }
-            } catch (error) {
-                setErrorState("(You've already reviewed this)")
-                return;
-            }
-            if (uploadReview.status === 201) {
-                try {
-                    const reviewPostedData = uploadReview.data
-                    const activityFeedData = {
-                        "user_profile": cookies.profileID,
-                        "review": reviewPostedData.id,
-                        "activity_type": 'Review'
-                    }
-                    createActivityReview = await API.post('/network/activityfeeditems/', activityFeedData,
-                        {
-                            headers: {
-                                Authorization: `JWT ${cookies.AccessToken}`
-                            }
-                        }
-                    )
-                } catch (error) {
-                    console.log(error, 'Unable to add to activity feed')
-                }
-                if (createActivityReview.status === 201) {
-                    window.location.reload();
-                }
-            }
-            return;
-        } else {
-            const ratingData = {
-                "rating": ratingState,
-                "content": imdbID,
-                "user_profile_id": cookies.profileID,
-            }
-            try {
-                uploadRating = await API.post('/network/ratings/', ratingData,
-                    {
-                        headers: {
-                            Authorization: `JWT ${cookies.AccessToken}`
-                        }
-                    }
-                )
-
-                console.log(uploadRating)
-            } catch (error) {
-                console.log(error, 'Rating exists already, updating')
-                if (error.status === 400) {
-                    uploadRating = await API.patch(`/network/myrating/${imdbID}/${cookies.profileID}/`, ratingData,
-                        {
-                            headers: {
-                                Authorization: `JWT ${cookies.AccessToken}`
-                            }
-                        }
-                    )
-                }
-                if (uploadRating.status === 200) {
-                    window.location.reload();
-                }
-            }
-            try {
-                const ratingPostedData = uploadRating.data
-                const activityFeedData = {
-                    "user_profile": cookies.profileID,
-                    "rating": ratingPostedData.id,
-                    "activity_type": 'Rating'
-                }
-                createActivityRating = await API.post('/network/activityfeeditems/', activityFeedData,
-                    {
-                        headers: {
-                            Authorization: `JWT ${cookies.AccessToken}`
-                        }
-                    }
-                )
-            } catch (error) {
-                console.log(error, 'Unable to add to activity feed')
-            }
-            if (createActivityRating.status === 201) {
-                window.location.reload();
             }
         }
 

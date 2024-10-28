@@ -16,6 +16,8 @@ import FriendWatchListPage from '../pages/FriendWatchListPage';
 import ReviewFeedPage from '../pages/reviewfeedpage';
 import RatingFeedPage from '../pages/ratingfeedpage';
 import UpdatePage from '../pages/updatepage';
+import ActivityPage from '../pages/activitypage';
+import ReactionListPage from '../pages/reactionlistpage';
 
 export function AppRoutes() {
     return (
@@ -33,6 +35,8 @@ export function AppRoutes() {
                     <Route path="/editprofile" element={<EditProfilePage />} />
                     <Route path="/search" element={<SearchPage />} />
                     <Route path="/activityfeed" element={<ActivityFeedPage />} />
+                    <Route path="/activity/:activity_id" element={<ActivityPage />} />
+                    <Route path="/reactionlist/:activity_id" element={<ReactionListPage />} />
                     <Route path="/friendwatchlist" element={<FriendWatchListPage />} />
                     <Route path="/searchuser/:search_query" element={<SearchUserPage />} />
                     <Route path="/mywatchlist/:user_id" element={<WatchListPage />} />

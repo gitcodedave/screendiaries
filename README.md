@@ -32,38 +32,40 @@ https://www.docker.com/products/docker-desktop/
 
 ### Content Search
 - On the home page, you will see that you don't have any content saved in either of your Queues. Click on either the ▶ button at the top right corner (in the navbar), or the search icon in the "My Movie Queue" area.
-- Search for content by specifying the type (click for either movies or series) and then submit a search. The results will populate a list. When you click on a piece of content, if it is not already in the database, it will be uploaded first, and then you will be redirected to it.
+- Search for content by specifying the type (click for either movies or series) and then submit a search. The results will populate a list. When you click on a piece of content, it will be uploaded to the database first and then you will be redirected to it.
 
 ### Content Page
-- On the content page, you can add it to your queue. If you add an item, it will appear in the "My Movie/Series Queue" section of your homepage. Selecting the queue button again will remove it from your queue. If you click the "Currently Watching" button, it will be added to your Watchlist as "Currently Watching". The "Watched" button adds it to your Watchlist under the "Watched" status.
-- You can rate the content from 1 to 5 stars or write a review, which includes an option to add a Spoiler Warning.
+- On the content page, you can 'add it to your queue'. If you add an item, it will appear in the "My Movie/Series Queue" section of your homepage. Clicking the queue button again will remove it from your queue. If you click the "Currently Watching" button, it will be added to your Watchlist as "Currently Watching". The "Watched" button adds it to your Watchlist under the "Watched" status.
+- You can rate the content from 1 to 5 stars, or write a review which includes an option to add a Spoiler Warning.
 - Ratings and Reviews will create new "Activity" on your homepage and the homepages of your followers.
 - The area underneath the 'Leave a review...' section displays any reviews created by you or other users. It will be empty if no one has reviewed it yet.
 
 *Dev: Feel free to search for several movies or TV shows and add them to your queue or leave ratings/reviews to populate the activity feed on your home page.
 
 ### Home Page/Activity
-- You can return to the homepage by clicking on your profile image in the navbar.
-- On the homepage, any content added to your queue will be displayed in the "My Movie/Series Queue" section. You can click on the content images to go directly to the content page, or click the "x" to remove it from your queue.
+- You can return to the homepage by clicking on your profile image in the (top left) navbar.
+- On the homepage, any content added to your queue will be displayed in the "My Movie/Series Queue" section. You can click on the images to go directly to the content page, or click the "x" to remove it from your queue.
 - Any reviews/ratings you made will be added to your "Reviews" and "Ratings" counter at the top. You can then click on those stats to get a list of either your Reviews or Ratings.
 - If you added anything to your Watchlist, click the "My Watchlist" button to view all items you've either "Watched" (checkmark) or are "Currently Watching" (clock).
 - The activity feed on the homepage will show your activity and the activity of users you follow.
+- If you click on the "Like" or "'Thumbs Up" icon, it will create a reaction to the Activity. You will notice the reaction counter go up by +1. You can then click on the number to see who else has reacted to the Activity.
+*The "Comment" and "Send To Friend" functionality is still under development.
 
 ### Following
-- To see other user activity, let's create a mock user we can follow. First, log out by clicking the "Logout" button at the bottom of your profile homepage. Then, register a new user with a unique email and username.
+- To see other user activity, let's create a mock user to follow. First, log out by clicking the "Logout" button at the bottom of your profile homepage. Then, register a new user with a unique email and username.
 - After being redirected to the homepage, use the search bar in the top left corner (in the navbar) to find friends by searching for the first name, last name, or username of the original user profile you created. The user should appear in the list.
-- You can now view the original user's Queue, Watchlist, Reviews, Ratings, who they're Following, or click the "Follow" button to follow them (clicking it again would unfollow them).
+- You can now view the original user's Queue, Watchlist, Reviews, Ratings, or who they're Following. Click the "Follow" button to follow them. (Clicking it again would unfollow them).
 - Return to the homepage. Your mock user's "Following" counter will increase, and you can click on it to see the users they now follow.
-- You will also see the activity feed of the user they followed. You can add that content to the mock-user's queue.
-- Click the "Friends WatchList" button to see all the content that users they followed have added to their Watchlists.
+- You will also see the activity feed of the user they have now followed. You can add that content to the mock-user's queue, as well as "Like" their activity.
+- Click the "Friends WatchList" button to see all of the content users you've followed have added to their own Watchlists.
 
 ### Updates
-- Now that you've followed the original user with the mock-user account, Logout and the Login again as the original user.
-- You will now see that in the "Updates" button in the navbar (the envelope) has a new item in it. If you click on the envelope, you will see that a user has followed you.
-- Once you've seen the any new updates, the "Updates" counter will be set back to 0. 
+- Now that you've followed the original user with the mock-user account, and "Liked" some of their Activity, Logout at the bottom of the profile homepage and Login again as the original user.
+- You will now see that the "Updates" button in the navbar (the envelope) has new items in it. If you click on the envelope, you will see that a user has followed you, and has reacted to your activities. Clicking on the updates will take you to more info on that activity.
+- Once you've seen the new updates, the "Updates" counter will be set back to 0. 
 
 ## Roadmap
-- **Engagement Functionality**: The React, Comment, and Share options in the activity feed will allow users to interact with feed items.
+- **Engagement Functionality**: The Comment and Share options in the activity feed will allow users to interact with feed items.
 - **"Friends Watching" - (Content Page Not Homepage) Button**: This feature on the content page will allow you to see which friends have watched or are currently watching the content.
 - **Messaging Users**: A direct messaging feature between users will be added.
 - **Top Ten**: A customizable "Top Ten" section for favorite movies or TV shows will be added to the homepage.

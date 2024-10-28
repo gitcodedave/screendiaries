@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from .models import ActivityFeedItem, Content, Follow, Message, QueueItem, Rating, RatingComment, RatingReaction, RatingReply, Review, ReviewComment, ReviewReaction, ReviewReply, TopTen, Update, UserProfile, WatchListItem
+from .models import ActivityFeedItem, Content, Follow, Message, QueueItem, Rating, Review, Comment, Reaction, TopTen, Update, UserProfile, WatchListItem
 
 
 CustomUser = get_user_model()
@@ -98,35 +98,10 @@ class TopTenSerializer(serializers.ModelSerializer):
         fields = ['id', 'user_profile', 'content', 'ranking']
 
 
-class ReviewSerializer(serializers.ModelSerializer):
-    activity_type = serializers.CharField(read_only=True)
-    user_profile = UserProfileSerializer(read_only=True)
-    user_profile_id = serializers.PrimaryKeyRelatedField(
-        queryset=UserProfile.objects.all(), write_only=True, source='user_profile'
-    )
 
-    class Meta:
-        model = Review
-        fields = ['id', 'review_text', 'rating', 'activity_type', 'content',
-                  'user_profile', 'user_profile_id', 'contains_spoiler', 'timestamp']
-
-
-class ReviewReadSerializer(serializers.ModelSerializer):
-    activity_type = serializers.CharField(read_only=True)
-    user_profile = UserProfileSerializer(read_only=True)
-    user_profile_id = serializers.PrimaryKeyRelatedField(
-        queryset=UserProfile.objects.all(), write_only=True, source='user_profile'
-    )
-    content = ContentSerializer(read_only=True)
-
-    class Meta:
-        model = Review
-        fields = ['id', 'review_text', 'rating', 'activity_type', 'content',
-                  'user_profile', 'user_profile_id', 'contains_spoiler', 'timestamp']
 
 
 class RatingSerializer(serializers.ModelSerializer):
-    activity_type = serializers.CharField(read_only=True)
     user_profile = UserProfileSerializer(read_only=True)
     user_profile_id = serializers.PrimaryKeyRelatedField(
         queryset=UserProfile.objects.all(), write_only=True, source='user_profile'
@@ -134,102 +109,155 @@ class RatingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rating
-        fields = ['id', 'rating', 'activity_type', 'content',
+        fields = ['id', 'rating', 'content', 'activity_feed',
                   'user_profile_id', 'user_profile', 'timestamp']
 
 
-class RatingReadSerializer(serializers.ModelSerializer):
-    activity_type = serializers.CharField(read_only=True)
+
+
+
+
+class ReactionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Reaction
+        fields = ['id', 'reaction', 'comment', 'activity_feed', 'review', 'rating', 'user_profile']
+
+class ReactionReadSerializer(serializers.ModelSerializer):
+    user_profile = UserProfileSerializer()
+
+    class Meta:
+        model = Reaction
+        fields = ['id', 'reaction', 'comment', 'activity_feed', 'review', 'rating', 'user_profile']
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    replies = serializers.SerializerMethodField()
+    reactions = ReactionSerializer(many=True)
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'comment_text', 'replies', 'reactions', 'parent', 'activity_feed',
+                  'user_profile', 'likes', 'timestamp']
+        
+    def get_replies(self, obj):
+        replies = obj.replies.all()
+        return CommentSerializer(replies, many=True).data
+
+
+
+
+class ReviewSerializer(serializers.ModelSerializer):
     user_profile = UserProfileSerializer(read_only=True)
     user_profile_id = serializers.PrimaryKeyRelatedField(
         queryset=UserProfile.objects.all(), write_only=True, source='user_profile'
     )
+
+    class Meta:
+        model = Review
+        fields = ['id', 'review_text', 'activity_feed', 'rating', 'content',
+                  'user_profile', 'user_profile_id', 'contains_spoiler', 'timestamp']
+
+
+
+class ActivityFeedItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActivityFeedItem
+        fields = ['id', 'activity_type',
+                  'user_profile', 'timestamp']
+        
+class ReviewReadSerializer(serializers.ModelSerializer):
+    user_profile = UserProfileSerializer(read_only=True)
+    user_profile_id = serializers.PrimaryKeyRelatedField(
+        queryset=UserProfile.objects.all(), write_only=True, source='user_profile'
+    )
+    activity_feed = ActivityFeedItemSerializer()
+    content = ContentSerializer(read_only=True)
+
+    class Meta:
+        model = Review
+        fields = ['id', 'review_text', 'rating', 'contains_spoiler', 'content', 'activity_feed',
+                  'user_profile_id', 'user_profile', 'timestamp']
+
+class RatingReadSerializer(serializers.ModelSerializer):
+    user_profile = UserProfileSerializer(read_only=True)
+    user_profile_id = serializers.PrimaryKeyRelatedField(
+        queryset=UserProfile.objects.all(), write_only=True, source='user_profile'
+    )
+    activity_feed = ActivityFeedItemSerializer()
     content = ContentSerializer(read_only=True)
 
     class Meta:
         model = Rating
-        fields = ['id', 'rating', 'activity_type', 'content',
+        fields = ['id', 'rating', 'content', 'activity_feed',
                   'user_profile_id', 'user_profile', 'timestamp']
 
 
-class ReviewCommentSerializer(serializers.ModelSerializer):
-    activity_type = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = ReviewComment
-        fields = ['id', 'comment_text', 'review', 'activity_type',
-                  'user_profile', 'likes', 'timestamp']
-
-
-class ReviewReplySerializer(serializers.ModelSerializer):
-    activity_type = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = ReviewReply
-        fields = ['id', 'reply_text', 'review_comment', 'activity_type',
-                  'user_profile', 'likes', 'timestamp']
-
-
-class ReviewReactionSerializer(serializers.ModelSerializer):
-    activity_type = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = ReviewReaction
-        fields = ['id', 'reaction', 'review', 'activity_type', 'user_profile']
-
-
-class RatingCommentSerializer(serializers.ModelSerializer):
-    activity_type = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = RatingComment
-        fields = ['id', 'comment_text', 'rating', 'activity_type',
-                  'user_profile', 'likes', 'timestamp']
-
-
-class RatingReplySerializer(serializers.ModelSerializer):
-    activity_type = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = RatingReply
-        fields = ['id', 'reply_text', 'rating_comment', 'activity_type',
-                  'user_profile', 'likes', 'timestamp']
-
-
-class RatingReactionSerializer(serializers.ModelSerializer):
-    activity_type = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = RatingReaction
-        fields = ['id', 'reaction', 'rating', 'activity_type', 'user_profile']
-
-
-class ActivityFeedItemSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = ActivityFeedItem
-        fields = ['id', 'activity_type', 'review', 'review_comment', 'review_reply',
-                  'review_reaction', 'rating', 'rating_comment',
-                  'rating_reply', 'rating_reaction', 'user_profile', 'timestamp']
-
-
 class ActivityFeedItemReadSerializer(serializers.ModelSerializer):
-    review = ReviewReadSerializer()
-    review_comment = ReviewCommentSerializer()
-    review_reply = ReviewReplySerializer()
-    review_reaction = ReviewReactionSerializer()
-    rating = RatingReadSerializer()
-    rating_comment = RatingCommentSerializer()
-    rating_reply = RatingReplySerializer()
-    rating_reaction = RatingReactionSerializer()
+    review = serializers.SerializerMethodField()
+    rating = serializers.SerializerMethodField()
+    comments = CommentSerializer(many=True)
+    reactions = ReactionSerializer(many=True)
     in_queue = serializers.BooleanField()
     in_watchlist = serializers.CharField()
 
     class Meta:
         model = ActivityFeedItem
-        fields = ['id', 'activity_type', 'review', 'review_comment', 'review_reply',
-                  'review_reaction', 'rating', 'rating_comment',
-                  'rating_reply', 'rating_reaction', 'user_profile', 'timestamp', 'in_queue', 'in_watchlist']
+        fields = ['id', 'activity_type', 'review', 'rating', 'comments', 'reactions', 'in_queue', 'in_watchlist',
+                  'user_profile', 'timestamp']
+        
+    def get_review(self, obj):
+        review = obj.reviews.first()
+        return ReviewReadSerializer(review).data if review else None
+
+    def get_rating(self, obj):
+        rating = obj.ratings.first()
+        return RatingReadSerializer(rating).data if rating else None
+    
+class ActivityFeedItemReactionSerializer(serializers.ModelSerializer):
+    review = serializers.SerializerMethodField()
+    rating = serializers.SerializerMethodField()
+    comments = CommentSerializer(many=True)
+    reactions = ReactionReadSerializer(many=True)
+    user_profile = UserProfileSerializer()
+
+    class Meta:
+        model = ActivityFeedItem
+        fields = ['id', 'activity_type', 'review', 'rating', 'comments', 'reactions',
+                  'user_profile', 'timestamp']
+        
+    def get_review(self, obj):
+        review = obj.reviews.first()
+        return ReviewReadSerializer(review).data if review else None
+
+    def get_rating(self, obj):
+        rating = obj.ratings.first()
+        return RatingReadSerializer(rating).data if rating else None
+    
+class MyActivityFeedItemReadSerializer(serializers.ModelSerializer):
+    review = serializers.SerializerMethodField()
+    rating = serializers.SerializerMethodField()
+    comments = CommentSerializer(many=True)
+    reactions = ReactionSerializer(many=True)
+    in_queue = serializers.BooleanField()
+    in_watchlist = serializers.CharField()
+
+    class Meta:
+        model = ActivityFeedItem
+        fields = ['id', 'activity_type', 'review', 'rating', 'comments', 'reactions', 'in_queue', 'in_watchlist',
+                  'user_profile', 'timestamp']
+        
+    def get_review(self, obj):
+        if hasattr(obj, 'reviews') and obj.reviews.exists():
+            review = obj.reviews.first()
+            return ReviewReadSerializer(review).data
+        return None
+
+    def get_rating(self, obj):
+        if hasattr(obj, 'ratings') and obj.ratings.exists():
+            rating = obj.ratings.first()
+            return RatingReadSerializer(rating).data
+        return None
 
 
 class UpdateSerializer(serializers.ModelSerializer):
