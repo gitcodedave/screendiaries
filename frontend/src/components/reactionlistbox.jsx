@@ -30,7 +30,6 @@ const ReactionListBox = () => {
                         }
                     });
                 const data = reactionListResponse.data.reactions
-                console.log(data)
                 const cleanedData = data.map((item, i) => {
                     let { profile_picture } = item.user_profile
                     if (!profile_picture.includes('http://localhost:8000')) {

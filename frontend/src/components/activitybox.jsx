@@ -8,6 +8,74 @@ const ActivityBox = () => {
     const [cookies] = useCookies(['profileID', 'AccessToken']);
     const [activity, setActivity] = useState({})
     const [showActivity, setShowActivity] = useState(false)
+    const [commentState, setCommentState] = useState('')
+
+
+    const handleCommentClick = () => {
+        setCommentState('')
+        const newActivity = { ...activity }
+        newActivity.show_comment_box = !newActivity.show_comment_box
+        setActivity(newActivity)
+    }
+
+    const handleCommentChange = (e) => {
+        e.preventDefault()
+        setCommentState(e.target.value)
+        return;
+    }
+
+    const handleSubmitCommentClick = async () => {
+        let submitCommentResponse;
+
+        const commentData = {
+            "comment_text": commentState,
+            "parent": null,
+            "activity_feed_id": activity.id,
+            "user_profile_id": cookies.profileID,
+            "likes": null
+        }
+        try {
+            submitCommentResponse = await API.post('/network/comments/', commentData,
+                {
+                    headers: {
+                        Authorization: `JWT ${cookies.AccessToken}`
+                    }
+                }
+            )
+            if (submitCommentResponse.status === 201) {
+                setCommentState('')
+                let newActivity = { ...activity }
+                newActivity.show_comment_box = false
+                const data = submitCommentResponse.data
+                newActivity.comments.push(data)
+                setActivity(newActivity)
+                let allForms = document.querySelectorAll('input');
+                allForms.forEach(eachInput => eachInput.value = '');
+                try {
+                    let otherUserID = data.activity_feed.user_profile
+                    const updateData = {
+                        "update_type": 'Comment',
+                        "user_profile": otherUserID,
+                        "follower": cookies.profileID,
+                        "activity_feed_item": data.activity_feed.id
+                    }
+                    const addUpdateResponse = await API.post(`/network/updates/`, updateData, {
+                        headers: {
+                            Authorization: `JWT ${cookies.AccessToken}`
+                        }
+                    });
+                    if (addUpdateResponse.status === 201) {
+                        return;
+                    }
+                } catch (error) {
+                    console.log(error, 'Unable to create an update for reaction')
+                }
+            }
+        } catch (error) {
+            console.log(error, 'Unable to add to new comment')
+        }
+    }
+
 
     const updateActivityQueue = (newActivity) => {
         let updatedActivity = newActivity
@@ -53,7 +121,7 @@ const ActivityBox = () => {
                 }
             });
             if (addReactionResponse.status === 201) {
-                const newActivity = activity
+                const newActivity = {...activity}
                 updateActivityReactions(newActivity, addReactionResponse.data)
                 setActivity(newActivity)
             }
@@ -131,7 +199,7 @@ const ActivityBox = () => {
                 contentID = content.rating.content.imdbid
             }
             await API.delete(`network/myqueuedelete/${contentID}/${cookies.profileID}/`)
-            let newActivity = {...activity}
+            let newActivity = { ...activity }
             updateActivityQueue(newActivity)
             setActivity(newActivity)
         } catch (error) {
@@ -251,6 +319,14 @@ const ActivityBox = () => {
                         }
                         data.rating.user_profile.profile_picture = profile_picture
                     }
+                    data.comments.map((comment, i) => {
+                        let { profile_picture } = comment.user_profile
+                        if (!profile_picture.includes('http://localhost:8000')) {
+                            profile_picture = 'http://localhost:8000' + profile_picture
+                        }
+                        comment.user_profile.profile_picture = profile_picture
+                        return comment;
+                    })
                     setActivity(data)
                     setShowActivity(true)
                 }
@@ -267,7 +343,7 @@ const ActivityBox = () => {
                 {showActivity && (
                     <div className='activityfeeditem' key={`feed-activity-item`}>
                         {activity.activity_type === 'Review' &&
-                            <div className='activityfeedactivityblock'>
+                            <div className='activityfeeditemblock'>
                                 <div className='activityfeedtype'>
                                     <NavLink to={`/profile/${activity.review.user_profile.id}`}><img src={activity.review.user_profile.profile_picture} alt='profile pic' style={{ clipPath: 'circle()', height: '30px', width: '30px', objectFit: 'cover', marginRight: '10px' }} ></img></NavLink>
                                     <span style={{ fontFamily: 'Playfair display', fontWeight: 'bold', lineHeight: '5px' }}>{activity.review.user_profile.username}</span> <span style={{ marginLeft: '10px' }}>Reviewed a {activity.review.content.content_type}:</span>
@@ -304,19 +380,35 @@ const ActivityBox = () => {
                                 </div>
                                 <div className='activityfeedengagement'>
                                     <div>
-                                    <NavLink to={`/reactionlist/${activity.id}`} style={{textDecoration: 'none'}}>{activity.reactions.length}</NavLink> <span className='clickableimage'><i onClick={() => handleReactClick(activity)} className="fa-solid fa-thumbs-up"></i></span> React
+                                        <NavLink to={`/reactionlist/${activity.id}`} style={{ textDecoration: 'none' }}>{activity.reactions.length > 0 && activity.reactions.length}</NavLink> <span className='clickableimage'><i onClick={() => handleReactClick(activity)} className="fa-solid fa-thumbs-up"></i></span> Like
                                     </div>
                                     <div>
-                                        <i className="fa-solid fa-message"></i> Comment
+                                        <span className='commentbutton'><i onClick={() => handleCommentClick()} className="fa-solid fa-message"></i></span> Comment
                                     </div>
                                     <div>
                                         <i className="fa-solid fa-share-from-square"></i> Send To Friend
                                     </div>
                                 </div>
+                                {activity.show_comment_box === true && (
+                                    <div className='leavecommentcontainer'>
+                                        <textarea className='leavereview' value={commentState} onChange={handleCommentChange} rows={5} cols={40} placeholder=" leave a comment..."></textarea>
+                                        <button className='submitcomment' onClick={() => handleSubmitCommentClick()}>submit</button>
+                                    </div>
+                                )}
+                                {activity.comments.length > 0 && activity.comments.map((comment, i) => (
+                                    <div key={`comment-${i}`} className='commentcontainer'>
+                                        <NavLink to={`/profile/${comment.user_profile.id}`}><img src={comment.user_profile.profile_picture} alt='profile pic' style={{ clipPath: 'circle()', height: '30px', width: '30px', objectFit: 'cover' }} ></img></NavLink>
+                                        <div className='commentbox'>
+                                            <strong>{comment.user_profile.username}</strong>
+                                            <span style={{ fontSize: '14px', marginBottom: '5px' }}>{comment.comment_text}</span>
+                                            <span className='datestring'>{new Date(comment.timestamp).toDateString().slice(4)}</span>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         }
                         {activity.activity_type === 'Rating' &&
-                            <div className='activityfeedactivityblock'>
+                            <div className='activityfeeditemblock'>
                                 <div className='activityfeedtype'>
                                     <NavLink to={`/profile/${activity.rating.user_profile.id}`}><img src={activity.rating.user_profile.profile_picture} alt='profile pic' style={{ clipPath: 'circle()', height: '30px', width: '30px', objectFit: 'cover', marginRight: '10px' }} ></img></NavLink>
                                     <span style={{ fontFamily: 'Playfair display', fontWeight: 'bold', lineHeight: '1px' }}>{activity.rating.user_profile.username}</span> <span style={{ marginLeft: '10px' }}>Rated a {activity.rating.content.content_type}<span style={{ color: '#5E665B' }}> <strong>{` ${activity.rating.rating}`} </strong><i className="fa-solid fa-star"></i></span> </span>
@@ -345,15 +437,31 @@ const ActivityBox = () => {
                                 </div>
                                 <div className='activityfeedengagement'>
                                     <div>
-                                    <NavLink to={`/reactionlist/${activity.id}`} style={{textDecoration: 'none'}}>{activity.reactions.length}</NavLink> <span className='clickableimage'><i onClick={() => handleReactClick(activity)} className="fa-solid fa-thumbs-up"></i></span> React
+                                        <NavLink to={`/reactionlist/${activity.id}`} style={{ textDecoration: 'none' }}>{activity.reactions.length > 0 && activity.reactions.length}</NavLink> <span className='clickableimage'><i onClick={() => handleReactClick(activity)} className="fa-solid fa-thumbs-up"></i></span> Like
                                     </div>
                                     <div>
-                                        <i className="fa-solid fa-message"></i> Comment
+                                        <span className='commentbutton'><i onClick={() => handleCommentClick()} className="fa-solid fa-message"></i></span> Comment
                                     </div>
                                     <div>
                                         <i className="fa-solid fa-share-from-square"></i> Send To Friend
                                     </div>
                                 </div>
+                                {activity.show_comment_box === true && (
+                                    <div className='leavecommentcontainer'>
+                                        <textarea className='leavereview' value={commentState} onChange={handleCommentChange} rows={5} cols={40} placeholder=" leave a comment..."></textarea>
+                                        <button className='submitcomment' onClick={() => handleSubmitCommentClick()}>submit</button>
+                                    </div>
+                                )}
+                                {activity.comments.length > 0 && activity.comments.map((comment, i) => (
+                                    <div key={`comment-${i}`} className='commentcontainer'>
+                                        <NavLink to={`/profile/${comment.user_profile.id}`}><img src={comment.user_profile.profile_picture} alt='profile pic' style={{ clipPath: 'circle()', height: '30px', width: '30px', objectFit: 'cover' }} ></img></NavLink>
+                                        <div className='commentbox'>
+                                            <strong>{comment.user_profile.username}</strong>
+                                            <span style={{ fontSize: '14px', marginBottom: '5px' }}>{comment.comment_text}</span>
+                                            <span className='datestring'>{new Date(comment.timestamp).toDateString().slice(4)}</span>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         }
                     </div>

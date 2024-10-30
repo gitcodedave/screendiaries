@@ -8,6 +8,7 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
     const [cookies] = useCookies(['profileID', 'AccessToken']);
     const [activityFeed, setActivityFeed] = useState([])
     const [showActivityFeed, setShowActivityFeed] = useState(false)
+    const [commentState, setCommentState] = useState('')
 
     const updateActivityQueue = (newActivityFeed, imdbid) => {
         newActivityFeed.map((item, i) => {
@@ -85,8 +86,81 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
                 console.log(error, 'Unable to add reaction')
             }
         }
-
         return;
+    }
+
+
+
+    const handleCommentClick = (i) => {
+        setCommentState('')
+        const newFeed = [...activityFeed]
+        newFeed.map((item, j) => {
+            if (j === i) {
+                item.show_comment_box = true
+            } else {
+                item.show_comment_box = false
+            }
+            return item
+        })
+        setActivityFeed(newFeed)
+    }
+
+    const handleCommentChange = (e) => {
+        e.preventDefault()
+        setCommentState(e.target.value)
+        return;
+    }
+
+    const handleSubmitCommentClick = async (i) => {
+        let submitCommentResponse;
+
+        const commentData = {
+            "comment_text": commentState,
+            "parent": null,
+            "activity_feed_id": activityFeed[i].id,
+            "user_profile_id": cookies.profileID,
+            "likes": null
+        }
+        try {
+            submitCommentResponse = await API.post('/network/comments/', commentData,
+                {
+                    headers: {
+                        Authorization: `JWT ${cookies.AccessToken}`
+                    }
+                }
+            )
+            if (submitCommentResponse.status === 201) {
+                setCommentState('')
+                let newFeed = [...activityFeed]
+                newFeed[i].show_comment_box = false
+                const data = submitCommentResponse.data
+                newFeed[i].comments.push(data)
+                setActivityFeed(newFeed)
+                let allForms = document.querySelectorAll('input');
+                allForms.forEach(eachInput => eachInput.value = '');
+                try {
+                    let otherUserID = data.activity_feed.user_profile
+                    const updateData = {
+                        "update_type": 'Comment',
+                        "user_profile": otherUserID,
+                        "follower": cookies.profileID,
+                        "activity_feed_item": data.activity_feed.id
+                    }
+                    const addUpdateResponse = await API.post(`/network/updates/`, updateData, {
+                        headers: {
+                            Authorization: `JWT ${cookies.AccessToken}`
+                        }
+                    });
+                    if (addUpdateResponse.status === 201) {
+                        return;
+                    }
+                } catch (error) {
+                    console.log(error, 'Unable to create an update for reaction')
+                }
+            }
+        } catch (error) {
+            console.log(error, 'Unable to add to new comment')
+        }
     }
 
     const updateActivityWatchlist = (newActivityFeed, imdbid, status) => {
@@ -288,6 +362,14 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
                             }
                             item.rating.user_profile.profile_picture = profile_picture
                         }
+                        item.comments.map((comment, i) => {
+                            let { profile_picture } = comment.user_profile
+                            if (!profile_picture.includes('http://localhost:8000')) {
+                                profile_picture = 'http://localhost:8000' + profile_picture
+                            }
+                            comment.user_profile.profile_picture = profile_picture
+                            return comment;
+                        })
                         return item
                     })
                     setActivityFeed(activityFeedResponse.data)
@@ -360,15 +442,31 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
                                 </div>
                                 <div className='activityfeedengagement'>
                                     <div>
-                                    <NavLink to={`/reactionlist/${item.id}`} style={{textDecoration: 'none'}}>{item.reactions.length}</NavLink> <span className='clickableimage'><i onClick={() => handleReactClick(item, i)} className="fa-solid fa-thumbs-up"></i></span> Like
+                                        <NavLink to={`/reactionlist/${item.id}`} style={{ textDecoration: 'none' }}>{item.reactions.length > 0 && item.reactions.length}</NavLink> <span className='clickableimage'><i onClick={() => handleReactClick(item, i)} className="fa-solid fa-thumbs-up"></i></span> Like
                                     </div>
                                     <div>
-                                        <i className="fa-solid fa-message"></i> Comment
+                                    <span className='commentbutton'><i onClick={() => handleCommentClick(i)} className="fa-solid fa-message"></i></span> Comment
                                     </div>
                                     <div>
                                         <i className="fa-solid fa-share-from-square"></i> Send To Friend
                                     </div>
                                 </div>
+                                {item.show_comment_box === true && (
+                                    <div className='leavecommentcontainer'>
+                                        <textarea className='leavereview' value={commentState} onChange={handleCommentChange} rows={5} cols={40} placeholder=" leave a comment..."></textarea>
+                                        <button className='submitcomment' onClick={() => handleSubmitCommentClick(i)}>submit</button>
+                                    </div>
+                                )}
+                                {item.comments.length > 0 && item.comments.map((comment, i) => (
+                                    <div key={`comment-${i}`} className='commentcontainer'>
+                                        <NavLink to={`/profile/${comment.user_profile.id}`}><img src={comment.user_profile.profile_picture} alt='profile pic' style={{ clipPath: 'circle()', height: '30px', width: '30px', objectFit: 'cover' }} ></img></NavLink>
+                                        <div className='commentbox'>
+                                            <strong>{comment.user_profile.username}</strong>
+                                            <span style={{ fontSize: '14px', marginBottom: '5px' }}>{comment.comment_text}</span>
+                                            <span className='datestring'>{new Date(comment.timestamp).toDateString().slice(4)}</span>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         }
                         {item.activity_type === 'Rating' &&
@@ -401,15 +499,31 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
                                 </div>
                                 <div className='activityfeedengagement'>
                                     <div>
-                                    <NavLink to={`/reactionlist/${item.id}`} style={{textDecoration: 'none'}}>{item.reactions.length}</NavLink> <span className='clickableimage'><i onClick={() => handleReactClick(item, i)} className="fa-solid fa-thumbs-up"></i></span> Like
+                                        <NavLink to={`/reactionlist/${item.id}`} style={{ textDecoration: 'none' }}>{item.reactions.length > 0 && item.reactions.length}</NavLink> <span className='clickableimage'><i onClick={() => handleReactClick(item, i)} className="fa-solid fa-thumbs-up"></i></span> Like
                                     </div>
                                     <div>
-                                        <i className="fa-solid fa-message"></i> Comment
+                                    <span className='commentbutton'><i onClick={() => handleCommentClick(i)} className="fa-solid fa-message"></i></span> Comment
                                     </div>
                                     <div>
                                         <i className="fa-solid fa-share-from-square"></i> Send To Friend
                                     </div>
                                 </div>
+                                {item.show_comment_box === true && (
+                                    <div className='leavecommentcontainer'>
+                                        <textarea className='leavereview' value={commentState} onChange={handleCommentChange} rows={5} cols={40} placeholder=" leave a comment..."></textarea>
+                                        <button className='submitcomment' onClick={() => handleSubmitCommentClick(i)}>submit</button>
+                                    </div>
+                                )}
+                                {item.comments.length > 0 && item.comments.map((comment, i) => (
+                                    <div key={`comment-${i}`} className='commentcontainer'>
+                                        <NavLink to={`/profile/${comment.user_profile.id}`}><img src={comment.user_profile.profile_picture} alt='profile pic' style={{ clipPath: 'circle()', height: '30px', width: '30px', objectFit: 'cover' }} ></img></NavLink>
+                                        <div className='commentbox'>
+                                            <strong>{comment.user_profile.username}</strong>
+                                            <span style={{ fontSize: '14px', marginBottom: '5px' }}>{comment.comment_text}</span>
+                                            <span className='datestring'>{new Date(comment.timestamp).toDateString().slice(4)}</span>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         }
                     </div>

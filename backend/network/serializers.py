@@ -98,9 +98,6 @@ class TopTenSerializer(serializers.ModelSerializer):
         fields = ['id', 'user_profile', 'content', 'ranking']
 
 
-
-
-
 class RatingSerializer(serializers.ModelSerializer):
     user_profile = UserProfileSerializer(read_only=True)
     user_profile_id = serializers.PrimaryKeyRelatedField(
@@ -113,38 +110,38 @@ class RatingSerializer(serializers.ModelSerializer):
                   'user_profile_id', 'user_profile', 'timestamp']
 
 
-
-
-
-
 class ReactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reaction
-        fields = ['id', 'reaction', 'comment', 'activity_feed', 'review', 'rating', 'user_profile']
+        fields = ['id', 'reaction', 'comment', 'activity_feed',
+                  'review', 'rating', 'user_profile']
+
 
 class ReactionReadSerializer(serializers.ModelSerializer):
     user_profile = UserProfileSerializer()
 
     class Meta:
         model = Reaction
-        fields = ['id', 'reaction', 'comment', 'activity_feed', 'review', 'rating', 'user_profile']
+        fields = ['id', 'reaction', 'comment', 'activity_feed',
+                  'review', 'rating', 'user_profile']
+
+
 
 
 class CommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
     reactions = ReactionSerializer(many=True)
+    user_profile = UserProfileSerializer()
 
     class Meta:
         model = Comment
         fields = ['id', 'comment_text', 'replies', 'reactions', 'parent', 'activity_feed',
-                  'user_profile', 'likes', 'timestamp']
-        
+                  'user_profile', 'timestamp']
+
     def get_replies(self, obj):
         replies = obj.replies.all()
         return CommentSerializer(replies, many=True).data
-
-
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -159,13 +156,13 @@ class ReviewSerializer(serializers.ModelSerializer):
                   'user_profile', 'user_profile_id', 'contains_spoiler', 'timestamp']
 
 
-
 class ActivityFeedItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActivityFeedItem
         fields = ['id', 'activity_type',
                   'user_profile', 'timestamp']
-        
+
+
 class ReviewReadSerializer(serializers.ModelSerializer):
     user_profile = UserProfileSerializer(read_only=True)
     user_profile_id = serializers.PrimaryKeyRelatedField(
@@ -178,6 +175,7 @@ class ReviewReadSerializer(serializers.ModelSerializer):
         model = Review
         fields = ['id', 'review_text', 'rating', 'contains_spoiler', 'content', 'activity_feed',
                   'user_profile_id', 'user_profile', 'timestamp']
+
 
 class RatingReadSerializer(serializers.ModelSerializer):
     user_profile = UserProfileSerializer(read_only=True)
@@ -194,6 +192,8 @@ class RatingReadSerializer(serializers.ModelSerializer):
 
 
 class ActivityFeedItemReadSerializer(serializers.ModelSerializer):
+    user_profile = UserProfileSerializer(read_only=True)
+    user_profile_id = serializers.PrimaryKeyRelatedField(queryset=UserProfile.objects.all(), write_only=True, source='user_profile')
     review = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True)
@@ -204,8 +204,8 @@ class ActivityFeedItemReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActivityFeedItem
         fields = ['id', 'activity_type', 'review', 'rating', 'comments', 'reactions', 'in_queue', 'in_watchlist',
-                  'user_profile', 'timestamp']
-        
+                  'user_profile', 'user_profile_id', 'timestamp']
+
     def get_review(self, obj):
         review = obj.reviews.first()
         return ReviewReadSerializer(review).data if review else None
@@ -213,7 +213,21 @@ class ActivityFeedItemReadSerializer(serializers.ModelSerializer):
     def get_rating(self, obj):
         rating = obj.ratings.first()
         return RatingReadSerializer(rating).data if rating else None
+
+
+class NewCommentSerializer(serializers.ModelSerializer):
+    user_profile = UserProfileSerializer(read_only=True)
+    user_profile_id = serializers.PrimaryKeyRelatedField(queryset=UserProfile.objects.all(), write_only=True, source='user_profile')
     
+    activity_feed = ActivityFeedItemSerializer(read_only=True)
+    activity_feed_id = serializers.PrimaryKeyRelatedField(queryset=ActivityFeedItem.objects.all(), write_only=True, source='activity_feed')
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'comment_text', 'parent', 'activity_feed', 'activity_feed_id',
+                  'user_profile', 'user_profile_id', 'timestamp']
+        
+
 class ActivityFeedItemReactionSerializer(serializers.ModelSerializer):
     review = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
@@ -225,7 +239,7 @@ class ActivityFeedItemReactionSerializer(serializers.ModelSerializer):
         model = ActivityFeedItem
         fields = ['id', 'activity_type', 'review', 'rating', 'comments', 'reactions',
                   'user_profile', 'timestamp']
-        
+
     def get_review(self, obj):
         review = obj.reviews.first()
         return ReviewReadSerializer(review).data if review else None
@@ -233,7 +247,8 @@ class ActivityFeedItemReactionSerializer(serializers.ModelSerializer):
     def get_rating(self, obj):
         rating = obj.ratings.first()
         return RatingReadSerializer(rating).data if rating else None
-    
+
+
 class MyActivityFeedItemReadSerializer(serializers.ModelSerializer):
     review = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
@@ -246,7 +261,7 @@ class MyActivityFeedItemReadSerializer(serializers.ModelSerializer):
         model = ActivityFeedItem
         fields = ['id', 'activity_type', 'review', 'rating', 'comments', 'reactions', 'in_queue', 'in_watchlist',
                   'user_profile', 'timestamp']
-        
+
     def get_review(self, obj):
         if hasattr(obj, 'reviews') and obj.reviews.exists():
             review = obj.reviews.first()

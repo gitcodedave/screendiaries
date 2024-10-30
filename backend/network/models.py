@@ -140,7 +140,6 @@ class Comment(models.Model):
     activity_feed = models.ForeignKey(
         ActivityFeedItem, null=True, blank=True, on_delete=models.CASCADE, related_name='comments')
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    likes = models.PositiveIntegerField(default=0)
     timestamp = models.DateTimeField(auto_now=True)
 
 
@@ -184,10 +183,12 @@ class Reaction(models.Model):
 class Update(models.Model):
     UPDATE_TYPE_FOLLOW = 'Follow'
     UPDATE_TYPE_REPLY = 'Reply'
+    UPDATE_TYPE_COMMENT = 'Comment'
     UPDATE_TYPE_REACTION = 'Reaction'
     UPDATE_TYPE_CHOICES = [
         (UPDATE_TYPE_FOLLOW, 'Follow'),
         (UPDATE_TYPE_REPLY, 'Reply'),
+        (UPDATE_TYPE_COMMENT, 'Comment'),
         (UPDATE_TYPE_REACTION, 'Reaction')
     ]
     update_type = models.CharField(choices=UPDATE_TYPE_CHOICES, max_length=8)

@@ -8,7 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, filters
 from rest_framework.parsers import MultiPartParser, FormParser
 from network.models import ActivityFeedItem, Content, Follow, Message, QueueItem, Rating, Review, Comment, Reaction, TopTen, Update, UserProfile, WatchListItem
-from network.serializers import ActivityFeedItemReactionSerializer, ActivityFeedItemReadSerializer, ActivityFeedItemSerializer, ContentSerializer, ContentWithStatusSerializer, FollowSerializer, FollowWithUserProfileSerializer, FriendWatchListSerializer, MessageSerializer, MyActivityFeedItemReadSerializer, MyUpdatesSerializer, QueueItemSerializer, CommentSerializer, RatingReadSerializer, ReactionSerializer, RatingSerializer, ReviewReadSerializer, ReviewSerializer, TopTenSerializer, UpdateSerializer, UserProfileSerializer, WatchListItemSerializer
+from network.serializers import ActivityFeedItemReactionSerializer, ActivityFeedItemReadSerializer, ActivityFeedItemSerializer, ContentSerializer, ContentWithStatusSerializer, FollowSerializer, FollowWithUserProfileSerializer, FriendWatchListSerializer, MessageSerializer, MyActivityFeedItemReadSerializer, MyUpdatesSerializer, NewCommentSerializer, QueueItemSerializer, CommentSerializer, RatingReadSerializer, ReactionSerializer, RatingSerializer, ReviewReadSerializer, ReviewSerializer, TopTenSerializer, UpdateSerializer, UserProfileSerializer, WatchListItemSerializer
 import requests
 
 from dotenv import load_dotenv
@@ -668,11 +668,21 @@ class MyRatingFeedView(APIView):
         # Serialize and return response
         serializer = RatingReadSerializer(ratings, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class CheckReviewExistsView(APIView):
+    def get(self, request, content_id, user_id):
+        review_exists = Review.objects.filter(content_id=content_id, user_profile_id=user_id).exists()
+        return Response({"exists": review_exists}, status=status.HTTP_200_OK)
+    
+class CheckRatingExistsView(APIView):
+    def get(self, request, content_id, user_id):
+        rating_exists = Rating.objects.filter(content_id=content_id, user_profile_id=user_id).exists()
+        return Response({"exists": rating_exists}, status=status.HTTP_200_OK)
 
 
 class CommentViewSet(ModelViewSet):
     queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
+    serializer_class = NewCommentSerializer
 
 
 class ReactionViewSet(ModelViewSet):

@@ -192,7 +192,20 @@ const ContentBox = () => {
                     setMyRating(checkMyRating.data.rating);
                 }
             } catch (error) {
-                console.log('Have not rated this yet');
+                try{
+                    const checkMyReview = await API.get(`/network/myreview/${params.imdbID}/${cookies.profileID}`, {
+                        headers: {
+                            Authorization: `JWT ${cookies.AccessToken}`
+                        }
+                    });
+                    if (checkMyReview.data) {
+                        setHasRating(true);
+                        setMyRating(checkMyReview.data.rating);
+                    }
+                } catch(error){
+                    console.log("Haven't rated this yet!")
+                }
+
             }
         };
 

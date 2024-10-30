@@ -74,7 +74,25 @@ const UpdateBox = () => {
                                         <div className='updatestabledata'>
                                             <NavLink to={`/profile/${update.follower.id}`}><img src={update.follower.profile_picture} style={{ clipPath: 'circle()', objectFit: 'cover', height: '40px', width: '40px' }} alt='profile-picture'></img></NavLink>
                                             <div>
-                                            <NavLink to={`/activity/${Number(update.activity_feed_item.id)}`} style={{textDecoration: 'none'}}> <strong>{update.follower.username}</strong> reacted to your {update.activity_feed_item.activity_type}</NavLink>
+                                            <NavLink to={`/activity/${Number(update.activity_feed_item.id)}`} style={{textDecoration: 'none'}}> <strong>{update.follower.username}</strong> reacted to your {update.activity_feed_item.activity_type}!</NavLink>
+                                            </div>
+                                        </div>
+                                    )
+                                    }
+                                    {update.update_type === 'Reply' && (
+                                        <div className='updatestabledata'>
+                                            <NavLink to={`/profile/${update.follower.id}`}><img src={update.follower.profile_picture} style={{ clipPath: 'circle()', objectFit: 'cover', height: '40px', width: '40px' }} alt='profile-picture'></img></NavLink>
+                                            <div>
+                                            <NavLink to={`/activity/${Number(update.activity_feed_item.id)}`} style={{textDecoration: 'none'}}> <strong>{update.follower.username}</strong> replied to your comment!</NavLink>
+                                            </div>
+                                        </div>
+                                    )
+                                    }
+                                    {update.update_type === 'Comment' && (
+                                        <div className='updatestabledata'>
+                                            <NavLink to={`/profile/${update.follower.id}`}><img src={update.follower.profile_picture} style={{ clipPath: 'circle()', objectFit: 'cover', height: '40px', width: '40px' }} alt='profile-picture'></img></NavLink>
+                                            <div>
+                                            <NavLink to={`/activity/${Number(update.activity_feed_item.id)}`} style={{textDecoration: 'none'}}> <strong>{update.follower.username}</strong> commented on your {update.activity_feed_item.activity_type}!</NavLink>
                                             </div>
                                         </div>
                                     )

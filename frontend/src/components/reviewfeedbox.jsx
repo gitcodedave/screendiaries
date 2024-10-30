@@ -86,9 +86,7 @@ const ReviewFeedBox = () => {
                                             {item.review_text}
                                         </div>
                                     </div>
-                                   
                                 </div>
-                            
                         </div>
                     ))}
                 </div>

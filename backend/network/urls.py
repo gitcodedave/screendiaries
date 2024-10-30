@@ -11,6 +11,7 @@ router.register('watchlistitems', views.WatchListItemViewSet)
 router.register('queueitems', views.QueueItemViewSet)
 router.register('topten', views.TopTenViewSet)
 router.register('reviews', views.ReviewViewSet)
+router.register('comments', views.CommentViewSet)
 router.register('ratings', views.RatingViewSet)
 router.register('reactions', views.ReactionViewSet)
 router.register('activityfeeditems', views.ActivityFeedItemViewSet)
@@ -45,8 +46,10 @@ urlpatterns = router.urls + \
     [path('userratings/<int:user_id>/', views.UserRatingsView.as_view(), name='user-ratings')] + \
     [path('myrating/<str:content_id>/<int:user_id>/', views.MyRatingView.as_view(), name='my-rating')] + \
     [path('myratingfeed/<int:user_id>/', views.MyRatingFeedView.as_view(), name='my-rating-feed')] + \
+    [path('checkratingexists/<str:content_id>/<int:user_id>/', views.CheckRatingExistsView.as_view(), name='check-rating-exists')] + \
     [path('myreview/<str:content_id>/<int:user_id>/', views.MyReviewView.as_view(), name='my-review')] + \
     [path('myreviewfeed/<int:user_id>/', views.MyReviewFeedView.as_view(), name='my-review-feed')] + \
+    [path('checkreviewexists/<str:content_id>/<int:user_id>/', views.CheckReviewExistsView.as_view(), name='check-review-exists')] + \
     [path('checkinqueue/<str:content_id>/<int:user_id>/', views.ContentInQueueView.as_view(), name='check-in-queue')] + \
     [path('checkinwatchlist/<str:content_id>/<int:user_id>/', views.ContentInWatchListView.as_view(), name='check-in-watchlist')] + \
     [path('allotherreviews/<str:content_id>/<int:user_id>/', views.AllOtherReviewsView.as_view(), name='all-other-reviews')] + \

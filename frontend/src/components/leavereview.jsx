@@ -43,6 +43,8 @@ const LeaveReview = () => {
         let uploadRating;
         let createActivityReview;
         let createActivityRating;
+
+        
         e.preventDefault()
         if (ratingState === '') {
             setErrorState('(Please choose a rating)')
@@ -50,6 +52,18 @@ const LeaveReview = () => {
         }
         if (reviewState !== '') {
             try {
+                const checkReviewExists = await API.get(`/network/checkreviewexists/${imdbID}/${cookies.profileID}/`,
+                    {
+                        headers: {
+                            Authorization: `JWT ${cookies.AccessToken}`
+                        }
+                    }
+                )
+                const checkData = checkReviewExists.data
+                if(checkData.exists === true){
+                    setErrorState("You've already reviewed this!")
+                    return;
+                }
                 const activityFeedData = {
                     "user_profile": cookies.profileID,
                     "activity_type": 'Review'
@@ -85,35 +99,40 @@ const LeaveReview = () => {
                             }
                         }
                     )
-                    const ratingData = {
-                        "rating": ratingState,
-                        "content": imdbID,
-                        "user_profile_id": cookies.profileID,
-                        "activity_feed": activityID
+                    if(uploadReview.status === 201){
+                        window.location.reload();
+                        return;
                     }
-                    try {
-                        uploadRating = await API.post('/network/ratings/', ratingData,
-                            {
-                                headers: {
-                                    Authorization: `JWT ${cookies.AccessToken}`
-                                }
-                            }
-                        )
-                    } catch (error) {
-                        console.log(error, 'Rating exists already, updating')
-                        if (error.status === 400) {
-                            uploadRating = await API.patch(`/network/myrating/${imdbID}/${cookies.profileID}/`, ratingData,
-                                {
-                                    headers: {
-                                        Authorization: `JWT ${cookies.AccessToken}`
-                                    }
-                                }
-                            )
-                        }
-                        if (uploadRating.status === 200) {
-                            window.location.reload();
-                        }
-                    }
+
+                    // const ratingData = {
+                    //     "rating": ratingState,
+                    //     "content": imdbID,
+                    //     "user_profile_id": cookies.profileID,
+                    //     "activity_feed": activityID
+                    // }
+                    // try {
+                    //     uploadRating = await API.post('/network/ratings/', ratingData,
+                    //         {
+                    //             headers: {
+                    //                 Authorization: `JWT ${cookies.AccessToken}`
+                    //             }
+                    //         }
+                    //     )
+                    // } catch (error) {
+                    //     console.log(error, 'Rating exists already, updating')
+                    //     if (error.status === 400) {
+                    //         uploadRating = await API.patch(`/network/myrating/${imdbID}/${cookies.profileID}/`, ratingData,
+                    //             {
+                    //                 headers: {
+                    //                     Authorization: `JWT ${cookies.AccessToken}`
+                    //                 }
+                    //             }
+                    //         )
+                    //     }
+                    //     if (uploadRating.status === 200) {
+                    //         window.location.reload();
+                    //     }
+                    // }
                 } catch (error) {
                     setErrorState("(You've already reviewed this)")
                     return;
@@ -127,6 +146,30 @@ const LeaveReview = () => {
         } else {
             let activityFeedData;
             try {
+                const checkRatingExists = await API.get(`/network/checkratingexists/${imdbID}/${cookies.profileID}/`,
+                    {
+                        headers: {
+                            Authorization: `JWT ${cookies.AccessToken}`
+                        }
+                    }
+                )
+                const checkData = checkRatingExists.data
+                if(checkData.exists === true){
+                    const updateRatingData = {
+                        "rating": ratingState,
+                    }
+                    uploadRating = await API.patch(`/network/myrating/${imdbID}/${cookies.profileID}/`, updateRatingData,
+                        {
+                            headers: {
+                                Authorization: `JWT ${cookies.AccessToken}`
+                            }
+                        }
+                    )
+                    if (uploadRating.status === 200) {
+                        window.location.reload();
+                        return;
+                    }
+                }
                 activityFeedData = {
                     "user_profile": cookies.profileID,
                     "activity_type": 'Rating'
@@ -160,8 +203,9 @@ const LeaveReview = () => {
                             }
                         }
                     )
-
-                    console.log(uploadRating)
+                    if (uploadRating.status === 201) {
+                        window.location.reload();
+                    }
                 } catch (error) {
                     console.log(error, 'Rating exists already, updating')
                     if (error.status === 400) {
@@ -172,9 +216,6 @@ const LeaveReview = () => {
                                 }
                             }
                         )
-                    }
-                    if (uploadRating.status === 200) {
-                        window.location.reload();
                     }
                 }
             }
