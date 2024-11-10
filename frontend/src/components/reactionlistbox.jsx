@@ -30,7 +30,15 @@ const ReactionListBox = () => {
                         }
                     });
                 const data = reactionListResponse.data.reactions
-                const cleanedData = data.map((item, i) => {
+                const reactUserList = []
+                const filteredData = []
+                for(let item of data){
+                    if(!reactUserList.includes(item.user_profile.id)){
+                        filteredData.push(item)
+                        reactUserList.push(item.user_profile.id)
+                    }
+                }
+                const cleanedData = filteredData.map((item, i) => {
                     let { profile_picture } = item.user_profile
                     if (!profile_picture.includes('http://localhost:8000')) {
                         profile_picture = 'http://localhost:8000' + profile_picture

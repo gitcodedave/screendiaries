@@ -173,6 +173,10 @@ button.profilebutton {
   gap: 5px;
   padding-bottom: 3px;
 }
+.updateslink:hover {
+  cursor: pointer;
+  color: #869282;
+}
 
 
 table.searchresults {
@@ -609,6 +613,7 @@ input[type='checkbox']#containsspoiler {
   font-family: Helvetica, sans-serif;
   padding: 10px;
 }
+
 .commentcontainer{
   width: 100%;
   display: flex;
@@ -617,6 +622,29 @@ input[type='checkbox']#containsspoiler {
   justify-content: center;
   gap: 5px;
   padding: 5px;
+}
+
+.commentreplycontainer{
+  margin-right: 40px;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: right;
+  gap: 5px;
+  padding: 5px;
+  margin-bottom: 5px;
+}
+
+.commentreplybox {
+  white-space: pre-wrap;
+  font-size: 10px;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(225, 225, 220);
+  width: calc(60% - 40px);
+  border-radius: 20px;
+  padding: 15px;
 }
 
 .leavecommentcontainer{
@@ -675,6 +703,10 @@ input[type='checkbox']#containsspoiler {
   font-size: 10px;
   font-style: italic;
 }
+.replydatestring {
+  font-size: 8px;
+  font-style: italic;
+}
 
 select.leaverating {
   font-size: 14px;
@@ -698,11 +730,28 @@ button.submitreview {
 }
 
 button.submitcomment {
+  margin-bottom: 10px;
   margin-left: auto;
   margin-top: 5px;
   border-radius: 20px;
   width: 100px;
   height: 25px;
+  outline-width: 0px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #5E665B;
+  background-color: white;
+  color: #5E665B;
+}
+
+button.submitcommentreply {
+  margin-bottom: 10px;
+  margin-left: auto;
+  margin-top: 5px;
+  border-radius: 20px;
+  font-size: 12px;
+  width: 80px;
+  height: 20px;
   outline-width: 0px;
   border-width: 1px;
   border-style: solid;
@@ -742,11 +791,11 @@ a:visited {
 }
 
 a:hover {
-  color: white;
+  color: #869282;
 }
 
 a:active {
-  color: white;
+  color: #869282;
 }
 
 
@@ -858,6 +907,11 @@ input:checked+.label .slider:before {
   align-items: center;
 }
 
+.activityfeedcommentscontainer {
+  max-height: 400px;
+  overflow-y: overlay;
+}
+
 .activityfeeditem{
   background-color: rgb(241, 237, 230);
   margin-bottom: 10px;
@@ -933,7 +987,37 @@ img.activityfeedcontentposter {
   gap: 20px;
   height: 40px;
   color: #5E665B;
+}
 
+.commentfeedengagement {
+  margin-left: auto;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  font-size: 11px;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  color: #5E665B;
+}
+
+.leavecommentreply {
+  min-width: 100%;
+  box-sizing: border-box;
+  border-radius: 5px;
+  outline-width: 0px;
+  border-width: 0px;
+  font-family: Helvetica, sans-serif;
+  padding: 10px;
+}
+
+.leavecommentreplycontainer{
+  display: flex;
+  flex-direction: column;
+  margin-left: auto;
+  margin-right: 30px;
+  align-items: center;
 }
 
 button.activityfeedqueue {

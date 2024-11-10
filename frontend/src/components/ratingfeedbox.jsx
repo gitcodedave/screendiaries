@@ -67,10 +67,10 @@ const RatingFeedBox = () => {
                     )}
                     {showActivityFeed && activityFeed.map((item, i) => (
                         <div className='activityfeeditem' key={`feed-item=${i}`}>
-                                <div className='activityfeeditemblock'>
+                                <NavLink to={`/activity/${item.activity_feed.id}`} style={{textDecoration: 'none'}}><div className='activityfeeditemblock'>
                                     <div className='activityfeedcontentblock'>
                                         <div>
-                                            {item && <NavLink to={`/content/${item.content.imdbid}`}><img className="activityfeedcontentposter" src={item.content.poster} alt='no-poster'></img></NavLink>}
+                                            {item && <img className="activityfeedcontentposter" src={item.content.poster} alt='no-poster'></img>}
                                         </div>
                                         <div className='contentinfo'>
                                             <div className='contentinfoitem'>
@@ -81,7 +81,7 @@ const RatingFeedBox = () => {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div></NavLink>
                         </div>
                     ))}
                 </div>

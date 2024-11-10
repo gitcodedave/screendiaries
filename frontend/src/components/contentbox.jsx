@@ -15,6 +15,7 @@ const ContentBox = () => {
     const [watched, setWatched] = useState(false)
     const [currentlyWatching, setCurrentlyWatching] = useState(false)
     const [addToQueueButton, setAddToQueueButton] = useState(true)
+    const [seriesTitle, setSeriesTitle] = useState('')
     const params = useParams()
 
     const handleAddToQueueClick = async (e) => {
@@ -85,7 +86,7 @@ const ContentBox = () => {
                             Authorization: `JWT ${cookies.AccessToken}`
                         }
                     });
-                    if (patchWatchListResponse.status === 200){
+                    if (patchWatchListResponse.status === 200) {
                         setWatched(true)
                     }
                 } catch (error) {
@@ -165,7 +166,7 @@ const ContentBox = () => {
                 if (checkInWatchListResponse.status === 200) {
                     const data = checkInWatchListResponse.data
                     const { status } = data
-                    if(status === 'Watched'){
+                    if (status === 'Watched') {
                         setInQueue(false);
                         setAddToQueueButton(true);
                         setWatched(true)
@@ -192,7 +193,7 @@ const ContentBox = () => {
                     setMyRating(checkMyRating.data.rating);
                 }
             } catch (error) {
-                try{
+                try {
                     const checkMyReview = await API.get(`/network/myreview/${params.imdbID}/${cookies.profileID}`, {
                         headers: {
                             Authorization: `JWT ${cookies.AccessToken}`
@@ -202,7 +203,7 @@ const ContentBox = () => {
                         setHasRating(true);
                         setMyRating(checkMyReview.data.rating);
                     }
-                } catch(error){
+                } catch (error) {
                     console.log("Haven't rated this yet!")
                 }
 
@@ -218,6 +219,9 @@ const ContentBox = () => {
                     }
                 });
                 if (content.status === 200) {
+                    if (content.data.seriesid !== null) {
+                        fetchSeriesTitle(content.data.seriesid)
+                    }
                     setContentData(content.data);
                 }
 
@@ -226,8 +230,37 @@ const ContentBox = () => {
             }
         };
 
+        const fetchSeriesTitle = async (seriesid) => {
+            const imdbIDParam = {
+                'i': seriesid
+            }
+            try {
+                const searchResponse = await API.get('/network/contentsearch/',
+                    {
+                        params: imdbIDParam,
+                        headers: {
+                            Authorization: `JWT ${cookies.AccessToken}`
+                        }
+                    },
+                )
+                if (searchResponse.status === 200) {
+                    setSeriesTitle(searchResponse.data.Title)
+                }
+            } catch (error) {
+                if (error.response) {
+                    console.error('Error response data:', error.response.data);
+                    if (error.response.status === 500) {
+                        console.error('Internal Server Error: ', error.response.data);
+                    }
+                }
+            }
+        }
+
         if (location.state) {
             setContentData(location.state)
+            if (location.state.seriesid !== null) {
+                fetchSeriesTitle(location.state.seriesid)
+            }
         } else {
             fetchContentData();
         }
@@ -255,8 +288,13 @@ const ContentBox = () => {
                             </>
                         )}
                     </div>
+                    {seriesTitle !== '' && (
+                        <div className='contentinfoitem'>
+                            <strong>Series: {seriesTitle}</strong>
+                        </div>
+                    )}
                     <div className='contentinfoitem'>
-                        <strong>{contentData && contentData.content_type}</strong>
+                        <strong>{contentData && contentData.content_type} {contentData && contentData.content_type === 'Episode' && contentData.episode}</strong>
                     </div>
                     <div className='contentinfoitem'>
                         <em>{contentData && contentData.genre}</em>

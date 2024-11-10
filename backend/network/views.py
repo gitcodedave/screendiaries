@@ -411,17 +411,16 @@ class MyUpdatesView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class MyUpdatesReadView(APIView):
+class MyUpdateReadView(APIView):
     queryset = Update.objects.all()
     serializer_class = UpdateSerializer
 
-    def get(self, request, user_id):
-        updates = Update.objects.filter(user_profile_id=user_id)
-
-        with transaction.atomic():
-            updates.update(read_status=True)
-
-        serializer = MyUpdatesSerializer(updates, many=True)
+    def patch(self, request, update_id):
+        update = Update.objects.get(pk=update_id)
+        Update.objects.filter(pk=update_id).update(read_status=True)
+        update.refresh_from_db()
+        
+        serializer = MyUpdatesSerializer(update)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -493,8 +492,17 @@ class ActivityView(APIView):
             user_profile=user_id
         ).values('status')
 
-        # Apply annotation on the queryset
-        activity = activity.annotate(
+        activity = activity.prefetch_related(
+            Prefetch(
+                'reviews', queryset=Review.objects.prefetch_related('reactions')),
+            Prefetch('comments', queryset=Comment.objects.filter(parent__isnull=True).prefetch_related(
+                'replies',
+                Prefetch('reactions', queryset=Reaction.objects.all())
+            )),
+            # Prefetch only reactions related to activity feed items
+            Prefetch('reactions', queryset=Reaction.objects.filter(
+                comment__isnull=True))
+        ).annotate(
             in_queue=Case(
                 When(activity_type='Review', then=Exists(
                     queue_content_review_exists)),
@@ -511,68 +519,9 @@ class ActivityView(APIView):
                 default=Value(False),
                 output_field=CharField()
             )
-        ).first()  # Retrieve the single annotated object from the queryset
+        ).first()
 
         serializer = ActivityFeedItemReadSerializer(activity)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class MyActivityFeedView(APIView):
-    serializer_class = ActivityFeedItemSerializer
-
-    def get(self, request):
-        user_list = request.GET.get('user_list')
-        user_id = request.GET.get('user_id')
-        if user_list:
-            user_list = user_list.split(',')
-            user_list = [int(num) for num in user_list]
-        else:
-            user_list = []
-
-        activity_feed = ActivityFeedItem.objects.filter(
-            user_profile__in=user_list
-        ).order_by('-timestamp')
-
-        queue_content_review_exists = QueueItem.objects.filter(
-            content_id=OuterRef('review__content__imdbid'),
-            user_profile=user_id
-        )
-
-        queue_content_rating_exists = QueueItem.objects.filter(
-            content_id=OuterRef('rating__content__imdbid'),
-            user_profile=user_id
-        )
-
-        watchlist_content_review_subquery = WatchListItem.objects.filter(
-            content_id=OuterRef('review__content__imdbid'),
-            user_profile=user_id
-        ).values('status')
-
-        watchlist_content_rating_subquery = WatchListItem.objects.filter(
-            content_id=OuterRef('rating__content__imdbid'),
-            user_profile=user_id
-        ).values('status')
-
-        activity_feed = activity_feed.annotate(
-            in_queue=Case(
-                When(activity_type='Review', then=Exists(
-                    queue_content_review_exists)),
-                When(activity_type='Rating', then=Exists(
-                    queue_content_rating_exists)),
-                default=Value(False),
-                output_field=CharField()
-            ),
-            in_watchlist=Case(
-                When(activity_type='Review', then=Subquery(
-                    watchlist_content_review_subquery)),
-                When(activity_type='Rating', then=Subquery(
-                    watchlist_content_rating_subquery)),
-                default=Value(False),
-                output_field=CharField()
-            )
-        )
-
-        serializer = ActivityFeedItemReadSerializer(activity_feed, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -614,14 +563,18 @@ class ActivityFeedView(APIView):
         ).values('status')
 
         # Prefetch and annotate in a single queryset
-        activity_feed = activity_feed.prefetch_related(
-            Prefetch('reviews', queryset=Review.objects.prefetch_related(
-                Prefetch('reactions', queryset=Reaction.objects.all())
-            )),
+        activity_feed = ActivityFeedItem.objects.filter(
+            user_profile__in=user_list
+        ).order_by('-timestamp').prefetch_related(
+            Prefetch(
+                'reviews', queryset=Review.objects.prefetch_related('reactions')),
             Prefetch('comments', queryset=Comment.objects.filter(parent__isnull=True).prefetch_related(
                 'replies',
                 Prefetch('reactions', queryset=Reaction.objects.all())
-            ))
+            )),
+            # Prefetch only reactions related to activity feed items
+            Prefetch('reactions', queryset=Reaction.objects.filter(
+                comment__isnull=True))
         ).annotate(
             in_queue=Case(
                 When(activity_type='Review', then=Exists(
@@ -668,15 +621,19 @@ class MyRatingFeedView(APIView):
         # Serialize and return response
         serializer = RatingReadSerializer(ratings, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
+
 class CheckReviewExistsView(APIView):
     def get(self, request, content_id, user_id):
-        review_exists = Review.objects.filter(content_id=content_id, user_profile_id=user_id).exists()
+        review_exists = Review.objects.filter(
+            content_id=content_id, user_profile_id=user_id).exists()
         return Response({"exists": review_exists}, status=status.HTTP_200_OK)
-    
+
+
 class CheckRatingExistsView(APIView):
     def get(self, request, content_id, user_id):
-        rating_exists = Rating.objects.filter(content_id=content_id, user_profile_id=user_id).exists()
+        rating_exists = Rating.objects.filter(
+            content_id=content_id, user_profile_id=user_id).exists()
         return Response({"exists": rating_exists}, status=status.HTTP_200_OK)
 
 
@@ -699,7 +656,6 @@ class ReactionListView(APIView):
 
         serializer = ActivityFeedItemReactionSerializer(activity)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 
 class MessageViewSet(ModelViewSet):

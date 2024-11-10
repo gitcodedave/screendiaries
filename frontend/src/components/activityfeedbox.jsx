@@ -1,6 +1,6 @@
 import { API } from "../api/api"
 import { useCookies } from "react-cookie";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 
 
@@ -9,6 +9,7 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
     const [activityFeed, setActivityFeed] = useState([])
     const [showActivityFeed, setShowActivityFeed] = useState(false)
     const [commentState, setCommentState] = useState('')
+    const [commentReplyState, setCommentReplyState] = useState('')
 
     const updateActivityQueue = (newActivityFeed, imdbid) => {
         newActivityFeed.map((item, i) => {
@@ -31,6 +32,141 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
         return updatedFeed
     }
 
+    const updateActivityCommentReactions = (newActivityFeed, i, k, newReaction) => {
+        const updatedFeed = newActivityFeed[i].comments[k].reactions.push(newReaction)
+        return updatedFeed
+    }
+
+    const handleCommentReactClick = async (i, comment, k) => {
+        let activityFeedID;
+        if (typeof comment.activity_feed === 'number') {
+            activityFeedID = comment.activity_feed
+        } else {
+            activityFeedID = comment.activity_feed.id
+        }
+        const reactionData = {
+            "reaction": 'Thumbs Up',
+            "comment": comment.id,
+            "activity_feed": activityFeedID,
+            "review": null,
+            "rating": null,
+            "user_profile": cookies.profileID,
+        }
+        try {
+            const addReactionResponse = await API.post(`/network/reactions/`, reactionData, {
+                headers: {
+                    Authorization: `JWT ${cookies.AccessToken}`
+                }
+            });
+            if (addReactionResponse.status === 201) {
+                const newActivityFeed = [...activityFeed]
+                updateActivityCommentReactions(newActivityFeed, i, k, addReactionResponse.data)
+                setActivityFeed(newActivityFeed)
+            }
+
+            try {
+                const otherUserID = comment.user_profile.id
+                const updateData = {
+                    "update_type": 'CommentReaction',
+                    "user_profile": otherUserID,
+                    "follower": cookies.profileID,
+                    "activity_feed_item": activityFeedID
+                }
+                const addUpdateResponse = await API.post(`/network/updates/`, updateData, {
+                    headers: {
+                        Authorization: `JWT ${cookies.AccessToken}`
+                    }
+                });
+                if (addUpdateResponse.status === 201) {
+                    return;
+                }
+            } catch (error) {
+                console.log(error, 'Unable to create an update for reaction')
+            }
+
+        } catch (error) {
+            if (error.status === 400) {
+                console.log("You've already liked this!")
+            } else {
+                console.log(error, 'Unable to add reaction')
+            }
+        }
+        return;
+    }
+
+    const handleCommentReplyClick = async (i, k) => {
+        setCommentReplyState('')
+        const newFeed = [...activityFeed]
+        newFeed[i].comments.map((comment, l) => {
+            if (l === k) {
+                comment.show_comment_box = true
+            } else {
+                comment.show_comment_box = false
+            }
+            return comment
+        })
+        setActivityFeed(newFeed)
+    }
+
+    const handleCommentReplyChange = (e) => {
+        e.preventDefault()
+        setCommentReplyState(e.target.value)
+        return;
+    }
+
+    const handleSubmitCommentReplyClick = async (i, comment, k) => {
+        let submitCommentResponse;
+
+        const commentData = {
+            "comment_text": commentReplyState,
+            "parent": comment.id,
+            "activity_feed_id": activityFeed[i].id,
+            "user_profile_id": cookies.profileID,
+            "likes": null
+        }
+        try {
+            submitCommentResponse = await API.post('/network/comments/', commentData,
+                {
+                    headers: {
+                        Authorization: `JWT ${cookies.AccessToken}`
+                    }
+                }
+            )
+            if (submitCommentResponse.status === 201) {
+                setCommentReplyState('')
+                let newFeed = [...activityFeed]
+                newFeed[i].comments[k].show_comment_box = false
+                const data = submitCommentResponse.data
+                data.reactions = []
+                data.replies = []
+                newFeed[i].comments[k].replies.push(data)
+                setActivityFeed(newFeed)
+                let allForms = document.querySelectorAll('input');
+                allForms.forEach(eachInput => eachInput.value = '');
+                try {
+                    let otherUserID = data.activity_feed.user_profile
+                    const updateData = {
+                        "update_type": 'Reply',
+                        "user_profile": otherUserID,
+                        "follower": cookies.profileID,
+                        "activity_feed_item": data.activity_feed.id
+                    }
+                    const addUpdateResponse = await API.post(`/network/updates/`, updateData, {
+                        headers: {
+                            Authorization: `JWT ${cookies.AccessToken}`
+                        }
+                    });
+                    if (addUpdateResponse.status === 201) {
+                        return;
+                    }
+                } catch (error) {
+                    console.log(error, 'Unable to create an update for reaction')
+                }
+            }
+        } catch (error) {
+            console.log(error, 'Unable to add to new comment')
+        }
+    }
 
     const handleReactClick = async (content, i) => {
         const reactionData = {
@@ -89,8 +225,6 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
         return;
     }
 
-
-
     const handleCommentClick = (i) => {
         setCommentState('')
         const newFeed = [...activityFeed]
@@ -134,6 +268,8 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
                 let newFeed = [...activityFeed]
                 newFeed[i].show_comment_box = false
                 const data = submitCommentResponse.data
+                data.reactions = []
+                data.replies = []
                 newFeed[i].comments.push(data)
                 setActivityFeed(newFeed)
                 let allForms = document.querySelectorAll('input');
@@ -228,7 +364,6 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
 
 
     const handleWatchedClick = async (content, imdbid) => {
-
         try {
             const watchListData = {
                 'user_profile': cookies.profileID,
@@ -368,6 +503,15 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
                                 profile_picture = 'http://localhost:8000' + profile_picture
                             }
                             comment.user_profile.profile_picture = profile_picture
+                            comment.replies.map((reply, j) => {
+                                let { profile_picture } = reply.user_profile
+                                if (!profile_picture.includes('http://localhost:8000')) {
+                                    profile_picture = 'http://localhost:8000' + profile_picture
+                                }
+                                reply.user_profile.profile_picture = profile_picture
+                                return reply
+                            })
+                            comment.show_comment_box = false
                             return comment;
                         })
                         return item
@@ -445,7 +589,7 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
                                         <NavLink to={`/reactionlist/${item.id}`} style={{ textDecoration: 'none' }}>{item.reactions.length > 0 && item.reactions.length}</NavLink> <span className='clickableimage'><i onClick={() => handleReactClick(item, i)} className="fa-solid fa-thumbs-up"></i></span> Like
                                     </div>
                                     <div>
-                                    <span className='commentbutton'><i onClick={() => handleCommentClick(i)} className="fa-solid fa-message"></i></span> Comment
+                                        <span className='commentbutton'><i onClick={() => handleCommentClick(i)} className="fa-solid fa-message"></i></span> Comment
                                     </div>
                                     <div>
                                         <i className="fa-solid fa-share-from-square"></i> Send To Friend
@@ -457,15 +601,43 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
                                         <button className='submitcomment' onClick={() => handleSubmitCommentClick(i)}>submit</button>
                                     </div>
                                 )}
-                                {item.comments.length > 0 && item.comments.map((comment, i) => (
-                                    <div key={`comment-${i}`} className='commentcontainer'>
-                                        <NavLink to={`/profile/${comment.user_profile.id}`}><img src={comment.user_profile.profile_picture} alt='profile pic' style={{ clipPath: 'circle()', height: '30px', width: '30px', objectFit: 'cover' }} ></img></NavLink>
-                                        <div className='commentbox'>
-                                            <strong>{comment.user_profile.username}</strong>
-                                            <span style={{ fontSize: '14px', marginBottom: '5px' }}>{comment.comment_text}</span>
-                                            <span className='datestring'>{new Date(comment.timestamp).toDateString().slice(4)}</span>
+                                {item.comments.length > 0 && item.comments.map((comment, k) => (
+                                    <Fragment key={`comment-${k}`} >
+                                        <div className='commentcontainer'>
+                                            <NavLink to={`/profile/${comment.user_profile.id}`}><img src={comment.user_profile.profile_picture} alt='profile pic' style={{ clipPath: 'circle()', height: '30px', width: '30px', objectFit: 'cover' }} ></img></NavLink>
+                                            <div className='commentbox'>
+                                                <strong>{comment.user_profile.username}</strong>
+                                                <span style={{ fontSize: '14px', marginBottom: '5px', marginTop: '2px' }}>{comment.comment_text}</span>
+                                                <span className='datestring'>{new Date(comment.timestamp).toDateString().slice(4)}</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                        <div className='commentfeedengagement'>
+                                            <div>
+                                                {comment.reactions.length > 0 && comment.reactions.length} <span className='clickableimage'><i onClick={() => handleCommentReactClick(i, comment, k)} className="fa-solid fa-thumbs-up"></i></span> Like
+                                            </div>
+                                            <div>
+                                                <span className='commentbutton'><i onClick={() => handleCommentReplyClick(i, k)} className="fa-solid fa-message"></i></span> Comment
+                                            </div>
+                                            <div>
+                                            </div>
+                                        </div>
+                                        {comment.show_comment_box === true && (
+                                            <div className='leavecommentreplycontainer'>
+                                                <textarea className='leavecommentreply' value={commentReplyState} onChange={handleCommentReplyChange} rows={4} cols={30} placeholder=" leave a reply..."></textarea>
+                                                <button className='submitcommentreply' onClick={() => handleSubmitCommentReplyClick(i, comment, k)}>reply</button>
+                                            </div>
+                                        )}
+                                        {comment.replies.length > 0 && comment.replies.map((reply, j) => (
+                                            <div key={`reply-${j}`} className='commentreplycontainer'>
+                                                <NavLink to={`/profile/${reply.user_profile.id}`}><img src={reply.user_profile.profile_picture} alt='profile pic' style={{ clipPath: 'circle()', height: '20px', width: '20px', objectFit: 'cover' }} ></img></NavLink>
+                                                <div className='commentreplybox'>
+                                                    <strong>{reply.user_profile.username}</strong>
+                                                    <span style={{ fontSize: '11px', marginBottom: '5px', marginTop: '2px' }}>{reply.comment_text}</span>
+                                                    <span className='replydatestring'>{new Date(reply.timestamp).toDateString().slice(4)}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </Fragment>
                                 ))}
                             </div>
                         }
@@ -502,7 +674,7 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
                                         <NavLink to={`/reactionlist/${item.id}`} style={{ textDecoration: 'none' }}>{item.reactions.length > 0 && item.reactions.length}</NavLink> <span className='clickableimage'><i onClick={() => handleReactClick(item, i)} className="fa-solid fa-thumbs-up"></i></span> Like
                                     </div>
                                     <div>
-                                    <span className='commentbutton'><i onClick={() => handleCommentClick(i)} className="fa-solid fa-message"></i></span> Comment
+                                        <span className='commentbutton'><i onClick={() => handleCommentClick(i)} className="fa-solid fa-message"></i></span> Comment
                                     </div>
                                     <div>
                                         <i className="fa-solid fa-share-from-square"></i> Send To Friend
@@ -514,15 +686,43 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
                                         <button className='submitcomment' onClick={() => handleSubmitCommentClick(i)}>submit</button>
                                     </div>
                                 )}
-                                {item.comments.length > 0 && item.comments.map((comment, i) => (
-                                    <div key={`comment-${i}`} className='commentcontainer'>
-                                        <NavLink to={`/profile/${comment.user_profile.id}`}><img src={comment.user_profile.profile_picture} alt='profile pic' style={{ clipPath: 'circle()', height: '30px', width: '30px', objectFit: 'cover' }} ></img></NavLink>
-                                        <div className='commentbox'>
-                                            <strong>{comment.user_profile.username}</strong>
-                                            <span style={{ fontSize: '14px', marginBottom: '5px' }}>{comment.comment_text}</span>
-                                            <span className='datestring'>{new Date(comment.timestamp).toDateString().slice(4)}</span>
+                                {item.comments.length > 0 && item.comments.map((comment, k) => (
+                                    <Fragment key={`comment-${k}`} >
+                                        <div className='commentcontainer'>
+                                            <NavLink to={`/profile/${comment.user_profile.id}`}><img src={comment.user_profile.profile_picture} alt='profile pic' style={{ clipPath: 'circle()', height: '30px', width: '30px', objectFit: 'cover' }} ></img></NavLink>
+                                            <div className='commentbox'>
+                                                <strong>{comment.user_profile.username}</strong>
+                                                <span style={{ fontSize: '14px', marginBottom: '5px', marginTop: '2px' }}>{comment.comment_text}</span>
+                                                <span className='datestring'>{new Date(comment.timestamp).toDateString().slice(4)}</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                        <div className='commentfeedengagement'>
+                                            <div>
+                                                {comment.reactions.length > 0 && comment.reactions.length} <span className='clickableimage'><i onClick={() => handleCommentReactClick(i, comment, k)} className="fa-solid fa-thumbs-up"></i></span> Like
+                                            </div>
+                                            <div>
+                                                <span className='commentbutton'><i onClick={() => handleCommentReplyClick(i, k)} className="fa-solid fa-message"></i></span> Comment
+                                            </div>
+                                            <div>
+                                            </div>
+                                        </div>
+                                        {comment.show_comment_box === true && (
+                                            <div className='leavecommentreplycontainer'>
+                                                <textarea className='leavecommentreply' value={commentReplyState} onChange={handleCommentReplyChange} rows={4} cols={30} placeholder=" leave a reply..."></textarea>
+                                                <button className='submitcommentreply' onClick={() => handleSubmitCommentReplyClick(i, comment, k)}>reply</button>
+                                            </div>
+                                        )}
+                                        {comment.replies.length > 0 && comment.replies.map((reply, j) => (
+                                            <div key={`reply-${j}`} className='commentreplycontainer'>
+                                                <NavLink to={`/profile/${reply.user_profile.id}`}><img src={reply.user_profile.profile_picture} alt='profile pic' style={{ clipPath: 'circle()', height: '20px', width: '20px', objectFit: 'cover' }} ></img></NavLink>
+                                                <div className='commentreplybox'>
+                                                    <strong>{reply.user_profile.username}</strong>
+                                                    <span style={{ fontSize: '11px', marginBottom: '5px', marginTop: '2px' }}>{reply.comment_text}</span>
+                                                    <span className='replydatestring'>{new Date(reply.timestamp).toDateString().slice(4)}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </Fragment>
                                 ))}
                             </div>
                         }

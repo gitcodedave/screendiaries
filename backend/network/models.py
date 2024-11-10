@@ -2,8 +2,10 @@ from django.db import models
 
 # Create your models here.
 from django.db import models
+from django.db.models import Q
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.forms import ValidationError
 
 
 # Create your models here.
@@ -169,15 +171,35 @@ class Reaction(models.Model):
     review = models.ForeignKey(
         Review, null=True, blank=True, related_name='reactions', on_delete=models.CASCADE)
     rating = models.ForeignKey(
-        Rating, null=True, blank=True, related_name='ratings', on_delete=models.CASCADE)
+        Rating, null=True, blank=True, related_name='reactions', on_delete=models.CASCADE)
     reaction = models.CharField(choices=REACTION_CHOICES, max_length=11)
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['activity_feed', 'user_profile'], name='unique_reaction')
+                fields=['activity_feed', 'comment', 'user_profile'],
+                name='unique_reaction'
+            )
         ]
+
+    def clean(self):
+        super().clean()
+        if self.comment is None:
+            # Ensure unique reaction per activity feed item
+            if Reaction.objects.filter(
+                activity_feed=self.activity_feed,
+                comment__isnull=True,
+                user_profile=self.user_profile
+            ).exists():
+                raise ValidationError('You can only react once per activity feed item.')
+        else:
+            # Ensure unique reaction per comment
+            if Reaction.objects.filter(
+                comment=self.comment,
+                user_profile=self.user_profile
+            ).exists():
+                raise ValidationError('You can only react once per comment.')
 
 
 class Update(models.Model):
@@ -185,13 +207,15 @@ class Update(models.Model):
     UPDATE_TYPE_REPLY = 'Reply'
     UPDATE_TYPE_COMMENT = 'Comment'
     UPDATE_TYPE_REACTION = 'Reaction'
+    UPDATE_TYPE_COMMENT_REACTION = 'CommentReaction'
     UPDATE_TYPE_CHOICES = [
         (UPDATE_TYPE_FOLLOW, 'Follow'),
         (UPDATE_TYPE_REPLY, 'Reply'),
         (UPDATE_TYPE_COMMENT, 'Comment'),
-        (UPDATE_TYPE_REACTION, 'Reaction')
+        (UPDATE_TYPE_REACTION, 'Reaction'),
+        (UPDATE_TYPE_COMMENT_REACTION, 'CommentReaction')
     ]
-    update_type = models.CharField(choices=UPDATE_TYPE_CHOICES, max_length=8)
+    update_type = models.CharField(choices=UPDATE_TYPE_CHOICES, max_length=15)
     user_profile = models.ForeignKey(
         UserProfile, related_name='updates', on_delete=models.CASCADE)
     follower = models.ForeignKey(

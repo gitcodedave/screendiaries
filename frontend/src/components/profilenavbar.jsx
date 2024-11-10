@@ -51,7 +51,7 @@ const ProfileNavbar = () => {
                 </button>
             </form>
             <div className='push'>
-                <span style={{ fontWeight: 'bold', marginRight: '3px' }}>{updateCount}</span>
+                <span style={{ fontWeight: 'bold', marginRight: '3px', color: '#fd5c63' }}>{updateCount > 0 && updateCount}</span>
                 <NavLink to='/updates'><i style={{ fontSize: '25px', marginRight: '10px' }} className="fa-solid fa-envelope"></i></NavLink>
                 <NavLink to='/search'><i style={{ fontSize: '25px', marginRight: '10px' }} className="fa-solid fa-play"></i></NavLink>
                 <img alt='message-icon' src='/message-icon.png' style={{ height: '20px', marginLeft: '5px', marginRight: '20px' }}></img>

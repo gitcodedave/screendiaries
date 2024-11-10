@@ -1,13 +1,32 @@
 import { useState, useCallback, useEffect } from "react";
 import { API } from "../api/api";
 import { useCookies } from "react-cookie";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 const UpdateBox = () => {
     const [updateList, setUpdateList] = useState([])
     const [cookies] = useCookies(['profileID', 'AccessToken']);
+    const navigate = useNavigate()
 
 
+    const handleUpdateItemClick = async (update) => {
+        if (update.read_status === false) {
+            try {
+                await API.patch(`network/myupdateread/${update.id}/`, {
+                    headers: {
+                        Authorization: `JWT ${cookies.AccessToken}`
+                    }
+                });
+            } catch (error) {
+                console.log(error, 'Unable to mark updates as Read')
+            }
+        }
+        if (update.update_type === 'Follow') {
+            navigate(`/profile/${update.follower.id}`);
+        } else {
+            navigate(`/activity/${Number(update.activity_feed_item.id)}`);
+        }
+    }
 
     const fetchUpdates = useCallback(async () => {
         try {
@@ -27,15 +46,6 @@ const UpdateBox = () => {
                     return item
                 })
                 setUpdateList(cleanedData);
-                try {
-                    await API.get(`network/myupdatesread/${cookies.profileID}/`, {
-                        headers: {
-                            Authorization: `JWT ${cookies.AccessToken}`
-                        }
-                    });
-                } catch (error) {
-                    console.log(error, 'Unable to mark updates as Read')
-                }
             }
         } catch (error) {
             console.log(error, 'No updates yet!');
@@ -64,8 +74,8 @@ const UpdateBox = () => {
                                     {update.update_type === 'Follow' && (
                                         <div className='updatestabledata'>
                                             <NavLink to={`/profile/${update.follower.id}`}><img src={update.follower.profile_picture} style={{ clipPath: 'circle()', objectFit: 'cover', height: '40px', width: '40px' }} alt='profile-picture'></img></NavLink>
-                                            <div>
-                                            <NavLink to={`/profile/${update.follower.id}`} style={{textDecoration: 'none'}}> <strong>{update.follower.username}</strong> followed you!</NavLink>
+                                            <div className='updateslink' onClick={() => handleUpdateItemClick(update)}>
+                                                <NavLink to={`/profile/${update.follower.id}`} style={{ textDecoration: 'none' }}> <strong>{update.follower.username}</strong> followed you!</NavLink>
                                             </div>
                                         </div>
                                     )
@@ -73,8 +83,8 @@ const UpdateBox = () => {
                                     {update.update_type === 'Reaction' && (
                                         <div className='updatestabledata'>
                                             <NavLink to={`/profile/${update.follower.id}`}><img src={update.follower.profile_picture} style={{ clipPath: 'circle()', objectFit: 'cover', height: '40px', width: '40px' }} alt='profile-picture'></img></NavLink>
-                                            <div>
-                                            <NavLink to={`/activity/${Number(update.activity_feed_item.id)}`} style={{textDecoration: 'none'}}> <strong>{update.follower.username}</strong> reacted to your {update.activity_feed_item.activity_type}!</NavLink>
+                                            <div className='updateslink' onClick={() => handleUpdateItemClick(update)}>
+                                                <strong>{update.follower.username}</strong> reacted to your {update.activity_feed_item.activity_type}!
                                             </div>
                                         </div>
                                     )
@@ -82,8 +92,8 @@ const UpdateBox = () => {
                                     {update.update_type === 'Reply' && (
                                         <div className='updatestabledata'>
                                             <NavLink to={`/profile/${update.follower.id}`}><img src={update.follower.profile_picture} style={{ clipPath: 'circle()', objectFit: 'cover', height: '40px', width: '40px' }} alt='profile-picture'></img></NavLink>
-                                            <div>
-                                            <NavLink to={`/activity/${Number(update.activity_feed_item.id)}`} style={{textDecoration: 'none'}}> <strong>{update.follower.username}</strong> replied to your comment!</NavLink>
+                                            <div className='updateslink' onClick={() => handleUpdateItemClick(update)}>
+                                                <strong>{update.follower.username}</strong> replied to your comment!
                                             </div>
                                         </div>
                                     )
@@ -91,8 +101,17 @@ const UpdateBox = () => {
                                     {update.update_type === 'Comment' && (
                                         <div className='updatestabledata'>
                                             <NavLink to={`/profile/${update.follower.id}`}><img src={update.follower.profile_picture} style={{ clipPath: 'circle()', objectFit: 'cover', height: '40px', width: '40px' }} alt='profile-picture'></img></NavLink>
-                                            <div>
-                                            <NavLink to={`/activity/${Number(update.activity_feed_item.id)}`} style={{textDecoration: 'none'}}> <strong>{update.follower.username}</strong> commented on your {update.activity_feed_item.activity_type}!</NavLink>
+                                            <div className='updateslink' onClick={() => handleUpdateItemClick(update)}>
+                                                <strong>{update.follower.username}</strong> commented on your {update.activity_feed_item.activity_type}!
+                                            </div>
+                                        </div>
+                                    )
+                                    }
+                                    {update.update_type === 'CommentReaction' && (
+                                        <div className='updatestabledata'>
+                                            <NavLink to={`/profile/${update.follower.id}`}><img src={update.follower.profile_picture} style={{ clipPath: 'circle()', objectFit: 'cover', height: '40px', width: '40px' }} alt='profile-picture'></img></NavLink>
+                                            <div className='updateslink' onClick={() => handleUpdateItemClick(update)}>
+                                                <strong>{update.follower.username}</strong> reacted to your comment on a {update.activity_feed_item.activity_type}!
                                             </div>
                                         </div>
                                     )

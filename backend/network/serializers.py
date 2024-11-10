@@ -116,6 +116,11 @@ class ReactionSerializer(serializers.ModelSerializer):
         model = Reaction
         fields = ['id', 'reaction', 'comment', 'activity_feed',
                   'review', 'rating', 'user_profile']
+        
+    def validate(self, attrs):
+        instance = Reaction(**attrs)
+        instance.full_clean()
+        return attrs
 
 
 class ReactionReadSerializer(serializers.ModelSerializer):
