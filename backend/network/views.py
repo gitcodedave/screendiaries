@@ -8,7 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, filters
 from rest_framework.parsers import MultiPartParser, FormParser
 from network.models import ActivityFeedItem, Content, Follow, Message, QueueItem, Rating, Review, Comment, Reaction, TopTen, Update, UserProfile, WatchListItem
-from network.serializers import ActivityFeedItemReactionSerializer, ActivityFeedItemReadSerializer, ActivityFeedItemSerializer, ContentSerializer, ContentWithStatusSerializer, FollowSerializer, FollowWithUserProfileSerializer, FriendWatchListSerializer, MessageSerializer, MyActivityFeedItemReadSerializer, MyUpdatesSerializer, NewCommentSerializer, QueueItemSerializer, CommentSerializer, RatingReadSerializer, ReactionSerializer, RatingSerializer, ReviewReadSerializer, ReviewSerializer, TopTenSerializer, UpdateSerializer, UserProfileSerializer, WatchListItemSerializer
+from network.serializers import ActivityFeedItemReactionSerializer, ActivityFeedItemReadSerializer, ActivityFeedItemSerializer, ContentSerializer, ContentWithStatusSerializer, FollowSerializer, FollowWithUserProfileSerializer, FriendWatchListSerializer, MessageSerializer, MyActivityFeedItemReadSerializer, MyUpdatesSerializer, NewCommentSerializer, QueueItemSerializer, CommentSerializer, RatingReadSerializer, ReactionSerializer, RatingSerializer, ReviewReadSerializer, ReviewSerializer, TopTenSerializer, UpdateSerializer, UserProfileSerializer, WatchListItemSerializer, WhosWatchingSerializer
 import requests
 
 from dotenv import load_dotenv
@@ -131,6 +131,22 @@ class ContentSearchView(APIView):
 class WatchListItemViewSet(ModelViewSet):
     queryset = WatchListItem.objects.all()
     serializer_class = WatchListItemSerializer
+
+
+class WhosWatchingView(APIView):
+    def get(self, request):
+        user_list = request.GET.get('user_list')
+        content_id = request.GET.get('content_id')
+        if user_list:
+            user_list = user_list.split(',')
+            user_list = [int(num) for num in user_list]
+        else:
+            user_list = []
+
+        watchlist_items = WatchListItem.objects.filter(user_profile_id__in=user_list, content_id=content_id)
+        serializer = WhosWatchingSerializer(watchlist_items, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 class FriendWatchListView(APIView):

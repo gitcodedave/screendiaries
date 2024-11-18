@@ -36,6 +36,7 @@ https://www.docker.com/products/docker-desktop/
 
 ### Content Page
 - On the content page, you can 'add it to your queue'. If you add an item, it will appear in the "My Movie/Series Queue" section of your homepage. Clicking the queue button again will remove it from your queue. If you click the "Currently Watching" button, it will be added to your Watchlist as "Currently Watching". The "Watched" button adds it to your Watchlist under the "Watched" status.
+- If you click on the "Who's Watching" button, it will display a list of users that you follow that are either Currently Watching or have already Watched the content.
 - Now you can rate the content from 1 to 5 stars, or write a review which includes an option to add a Spoiler Warning.
 - Ratings and Reviews will create new "Activity" on your homepage and the homepages of your followers. If you have already Reviewed an item, you cannot review it again (I will be adding an edit-Review feature), but if you have already Rated an item, you can Rate it again and it will simply update your previous Rating.
 - The area underneath the 'Leave a review...' section displays any reviews created by you or other users. It will be empty if no one has reviewed it yet.
@@ -60,6 +61,7 @@ https://www.docker.com/products/docker-desktop/
 - Return to the homepage. Your second, mock user's "Following" counter will increase, and you can click on it to see the users they now follow.
 - You will also see the activity feed of the user they have now followed. You can add that content to the mock-user's queue, as well as "Like" their activity and "Comment" on it.
 - Back on your homepage, you can now click the "Friends WatchList" button to see all of the content users you've followed have added to their own Watchlists.
+- If the other user you are following has added any content to your Watchlist, when you go to the content and click on the "Who's Watching" button, you will see them on the list of users who are also Watching the content.
 
 ### Updates
 - Now that you've "Followed" the original user, "Liked", and "Commented" on some of their Activity with the mock-user account, Logout at the bottom of the profile homepage and Login again as the original user.
@@ -67,9 +69,8 @@ https://www.docker.com/products/docker-desktop/
 - Once you've "Read" an item, the "Updates" counter will decrement. 
 
 ## Roadmap
-- **Engagement Functionality**: The Send To Friends option in the activity feed will allow users to send content to other users items.
-- **"Friends Watching" - (Content Page, Not Homepage) Button**: This feature on the content page will allow you to see which friends have watched or are currently watching the content.
 - **Messaging Users**: A direct messaging feature between users will be added.
+- **Engagement Functionality**: The Send To Friends option in the activity feed will allow users to send content to other users items.
 - **Top Ten**: A customizable "Top Ten" section for favorite movies or TV shows will be added to the homepage.
 - **Activity Feed Pagination**: The activity feed will load 10 items at a time, with options to scroll down or click "next page" to load more.
 - **Content Result Pagination**: Future updates will add pagination to the content search results to load additional pages.

@@ -27,6 +27,7 @@ urlpatterns = router.urls + \
     [path('userreviewcount/<int:user_id>/', views.UserReviewCountView.as_view(), name='user-review-count')] + \
     [path('userratingcount/<int:user_id>/', views.UserRatingCountView.as_view(), name='user-rating-count')] + \
     [path('mywatchlist/<int:user_id>/', views.MyWatchListView.as_view(), name='my-watchlist')] + \
+    [path('whoswatching/', views.WhosWatchingView.as_view(), name='whos-watching')] + \
     [path('friendwatchlist/', views.FriendWatchListView.as_view(), name='friend-watchlist')] + \
     [path('update/', views.UpdateIdView.as_view(), name='update')] + \
     [path('myupdates/<int:user_id>/', views.MyUpdatesView.as_view(), name='my-updates')] + \

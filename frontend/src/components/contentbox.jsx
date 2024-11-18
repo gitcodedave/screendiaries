@@ -1,5 +1,5 @@
 import { useCookies } from "react-cookie";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { API } from "../api/api";
 import LeaveReview from "./leavereview";
@@ -17,6 +17,12 @@ const ContentBox = () => {
     const [addToQueueButton, setAddToQueueButton] = useState(true)
     const [seriesTitle, setSeriesTitle] = useState('')
     const params = useParams()
+
+    const navigate = useNavigate()
+
+    const handleWhosWatchingClick = (content_id) => {
+        navigate(`/whoswatching/${content_id}/`)
+    }
 
     const handleAddToQueueClick = async (e) => {
         try {
@@ -331,7 +337,7 @@ const ContentBox = () => {
                 </div>
                 <div className='contentinfobuttons'>
                     {!watched && !currentlyWatching && contentData && <button className='currentlywatching' onClick={handleCurrentlyWatchingClick}><i className="fas fa-clock"></i> Watching</button>}
-                    {contentData && <button className='whoswatching'><i className="fa-solid fa-eye"></i> Who's watching?</button>}
+                    {contentData && <button className='whoswatching'onClick={() => handleWhosWatchingClick(contentData.imdbid)}><i className="fa-solid fa-eye"></i> Who's watching?</button>}
                 </div>
             </div>
             <LeaveReview />

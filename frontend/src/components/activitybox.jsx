@@ -1,4 +1,4 @@
-import { NavLink, useParams } from "react-router-dom";
+import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { useCookies } from "react-cookie";
 import { API } from "../api/api";
 import { Fragment, useEffect, useState } from "react";
@@ -11,6 +11,11 @@ const ActivityBox = () => {
     const [commentState, setCommentState] = useState('')
     const [commentReplyState, setCommentReplyState] = useState('')
 
+    const navigate = useNavigate()
+
+    const handleWhosWatchingClick = (content_id) => {
+        navigate(`/whoswatching/${content_id}/`)
+    }
 
     const handleCommentClick = () => {
         setCommentState('')
@@ -521,7 +526,7 @@ const ActivityBox = () => {
                                             </div>
                                             <div className='contentinfobuttons'>
                                                 {activity.in_watchlist === null && activity.in_watchlist !== 'Currently Watching' && <button className='activityfeedcurrentlywatching' onClick={() => handleCurrentlyWatchingClick(activity, activity.review.content.imdbid)}><i className="fas fa-clock"></i> Watching</button>}
-                                                {<button className='activityfeedwhoswatching'><i className="fa-solid fa-eye"></i> Who's watching?</button>}
+                                                {<button className='activityfeedwhoswatching' onClick={() => handleWhosWatchingClick(activity.review.content.imdbid)}><i className="fa-solid fa-eye"></i> Who's watching?</button>}
                                             </div>
                                         </div>
                                     </div>
@@ -606,7 +611,7 @@ const ActivityBox = () => {
                                             </div>
                                             <div className='contentinfobuttons'>
                                                 {activity.in_watchlist === null && activity.in_watchlist !== 'Currently Watching' && <button className='activityfeedcurrentlywatching' onClick={() => handleCurrentlyWatchingClick(activity, activity.rating.content.imdbid)}><i className="fas fa-clock"></i> Watching</button>}
-                                                {<button className='activityfeedwhoswatching'><i className="fa-solid fa-eye"></i> Who's watching?</button>}
+                                                {<button className='activityfeedwhoswatching' onClick={() => handleWhosWatchingClick(activity.rating.content.imdbid)}><i className="fa-solid fa-eye"></i> Who's watching?</button>}
                                             </div>
                                         </div>
                                     </div>

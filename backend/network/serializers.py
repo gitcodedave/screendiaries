@@ -86,6 +86,14 @@ class WatchListItemSerializer(serializers.ModelSerializer):
         fields = ['id', 'status', 'content', 'user_profile', 'timestamp']
 
 
+class WhosWatchingSerializer(serializers.ModelSerializer):
+    user_profile = UserProfileSerializer()
+
+    class Meta:
+        model = WatchListItem
+        fields = ['id', 'status', 'content', 'user_profile', 'timestamp']
+
+
 class QueueItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = QueueItem

@@ -1,7 +1,7 @@
 import { API } from "../api/api"
 import { useCookies } from "react-cookie";
 import { Fragment, useEffect, useState } from "react";
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 
 
 const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
@@ -10,6 +10,12 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
     const [showActivityFeed, setShowActivityFeed] = useState(false)
     const [commentState, setCommentState] = useState('')
     const [commentReplyState, setCommentReplyState] = useState('')
+
+    const navigate = useNavigate()
+
+    const handleWhosWatchingClick = (content_id) => {
+        navigate(`/whoswatching/${content_id}/`)
+    }
 
     const updateActivityQueue = (newActivityFeed, imdbid) => {
         newActivityFeed.map((item, i) => {
@@ -579,7 +585,7 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
                                             </div>
                                             <div className='contentinfobuttons'>
                                                 {item.in_watchlist === null && item.in_watchlist !== 'Currently Watching' && <button className='activityfeedcurrentlywatching' onClick={() => handleCurrentlyWatchingClick(item, item.review.content.imdbid)}><i className="fas fa-clock"></i> Watching</button>}
-                                                {<button className='activityfeedwhoswatching'><i className="fa-solid fa-eye"></i> Who's watching?</button>}
+                                                {<button className='activityfeedwhoswatching' onClick={() => handleWhosWatchingClick(item.review.content.imdbid)}><i className="fa-solid fa-eye"></i> Who's watching?</button>}
                                             </div>
                                         </div>
                                     </div>
@@ -664,7 +670,7 @@ const ActivityFeedBox = ({ onQueueUpdate, updateQueueSignal }) => {
                                             </div>
                                             <div className='contentinfobuttons'>
                                                 {item.in_watchlist === null && item.in_watchlist !== 'Currently Watching' && <button className='activityfeedcurrentlywatching' onClick={() => handleCurrentlyWatchingClick(item, item.rating.content.imdbid)}><i className="fas fa-clock"></i> Watching</button>}
-                                                {<button className='activityfeedwhoswatching'><i className="fa-solid fa-eye"></i> Who's watching?</button>}
+                                                {<button className='activityfeedwhoswatching' onClick={() => handleWhosWatchingClick(item.rating.content.imdbid)}><i className="fa-solid fa-eye"></i> Who's watching?</button>}
                                             </div>
                                         </div>
                                     </div>

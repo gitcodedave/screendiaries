@@ -18,6 +18,7 @@ import RatingFeedPage from '../pages/ratingfeedpage';
 import UpdatePage from '../pages/updatepage';
 import ActivityPage from '../pages/activitypage';
 import ReactionListPage from '../pages/reactionlistpage';
+import WhosWatchingPage from '../pages/whoswatchingpage';
 
 export function AppRoutes() {
     return (
@@ -40,6 +41,7 @@ export function AppRoutes() {
                     <Route path="/friendwatchlist" element={<FriendWatchListPage />} />
                     <Route path="/searchuser/:search_query" element={<SearchUserPage />} />
                     <Route path="/mywatchlist/:user_id" element={<WatchListPage />} />
+                    <Route path="/whoswatching/:content_id" element={<WhosWatchingPage />} />
                     <Route path="/reviewfeed/:user_id" element={<ReviewFeedPage />} />
                     <Route path="/ratingfeed/:user_id" element={<RatingFeedPage />} />
                     <Route path="/friendslist/:user_id" element={<FriendsListPage />} />
